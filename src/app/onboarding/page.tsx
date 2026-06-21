@@ -84,7 +84,7 @@ export default function Onboarding() {
       <div className="absolute bottom-1/4 right-1/10 w-96 h-96 bg-teal-500/5 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Header */}
-      <header className="max-w-md w-full mx-auto flex items-center justify-between z-10">
+      <header role="banner" className="max-w-md w-full mx-auto flex items-center justify-between z-10">
         <div className="flex items-center gap-2">
           <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">
             <Leaf size={18} />
@@ -95,7 +95,7 @@ export default function Onboarding() {
       </header>
 
       {/* Main card */}
-      <main className="max-w-md w-full mx-auto bg-slate-900/60 glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl relative z-10 my-8 flex flex-col justify-between min-h-[460px]">
+      <main id="main-content" role="main" className="max-w-md w-full mx-auto bg-slate-900/60 glass-panel rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-2xl relative z-10 my-8 flex flex-col justify-between min-h-[460px]">
         
         {/* Step Progress Info */}
         <div className="space-y-4">
@@ -136,8 +136,9 @@ export default function Onboarding() {
 
                 <div className="space-y-3 pt-2">
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-400 font-semibold block">Full Name</label>
+                    <label htmlFor="onboard-name" className="text-xs text-slate-400 font-semibold block">Full Name</label>
                     <input
+                      id="onboard-name"
                       type="text"
                       placeholder="Alex Rivera"
                       value={profile.name}
@@ -149,8 +150,9 @@ export default function Onboarding() {
                   
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-400 font-semibold block">Age</label>
+                      <label htmlFor="onboard-age" className="text-xs text-slate-400 font-semibold block">Age</label>
                       <input
+                        id="onboard-age"
                         type="number"
                         placeholder="26"
                         value={profile.age}
@@ -160,8 +162,9 @@ export default function Onboarding() {
                     </div>
                     
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-400 font-semibold block">Occupation</label>
+                      <label htmlFor="onboard-occupation" className="text-xs text-slate-400 font-semibold block">Occupation</label>
                       <input
+                        id="onboard-occupation"
                         type="text"
                         placeholder="Designer"
                         value={profile.occupation}
@@ -190,8 +193,9 @@ export default function Onboarding() {
 
                 <div className="space-y-3 pt-2">
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-400 font-semibold block">Daily Travel Distance: {habits.travelDistance} km</label>
+                    <label htmlFor="onboard-travel" className="text-xs text-slate-400 font-semibold block">Daily Travel Distance: {habits.travelDistance} km</label>
                     <input
+                      id="onboard-travel"
                       type="range"
                       min="0"
                       max="150"
@@ -203,8 +207,9 @@ export default function Onboarding() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-400 font-semibold block">Primary Vehicle Class</label>
+                    <label htmlFor="onboard-vehicle" className="text-xs text-slate-400 font-semibold block">Primary Vehicle Class</label>
                     <select
+                      id="onboard-vehicle"
                       value={habits.vehicleType}
                       onChange={(e) => setHabits({ ...habits, vehicleType: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
@@ -237,8 +242,9 @@ export default function Onboarding() {
                 <div className="space-y-3 pt-2">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-400 font-semibold block">Monthly Power Bill (USD)</label>
+                      <label htmlFor="onboard-electricity" className="text-xs text-slate-400 font-semibold block">Monthly Power Bill (USD)</label>
                       <input
+                        id="onboard-electricity"
                         type="number"
                         value={habits.electricityBill}
                         onChange={(e) => setHabits({ ...habits, electricityBill: parseInt(e.target.value) || 0 })}
@@ -247,8 +253,9 @@ export default function Onboarding() {
                     </div>
                     
                     <div className="space-y-1">
-                      <label className="text-xs text-slate-400 font-semibold block">Daily AC Runtime (Hrs)</label>
+                      <label htmlFor="onboard-ac" className="text-xs text-slate-400 font-semibold block">Daily AC Runtime (Hrs)</label>
                       <input
+                        id="onboard-ac"
                         type="number"
                         value={habits.acUsage}
                         onChange={(e) => setHabits({ ...habits, acUsage: parseInt(e.target.value) || 0 })}
@@ -265,6 +272,7 @@ export default function Onboarding() {
                           key={app}
                           type="button"
                           onClick={() => handleApplianceToggle(app)}
+                          aria-pressed={habits.appliances.includes(app)}
                           className={`p-2.5 rounded-xl border text-left flex items-center justify-between cursor-pointer transition-colors ${
                             habits.appliances.includes(app)
                               ? "border-emerald-500 bg-emerald-500/5 text-slate-200"
@@ -302,6 +310,7 @@ export default function Onboarding() {
                         key={diet}
                         type="button"
                         onClick={() => setHabits({ ...habits, foodHabit: diet })}
+                        aria-pressed={habits.foodHabit === diet}
                         className={`p-4 rounded-xl border text-left flex justify-between items-center cursor-pointer transition-all ${
                           habits.foodHabit === diet
                             ? "border-emerald-500 bg-emerald-500/5 text-emerald-300 font-bold"
@@ -338,8 +347,9 @@ export default function Onboarding() {
 
                 <div className="space-y-4 pt-2">
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-400 font-semibold block">Online E-commerce Frequency</label>
+                    <label htmlFor="onboard-shopping" className="text-xs text-slate-400 font-semibold block">Online E-commerce Frequency</label>
                     <select
+                      id="onboard-shopping"
                       value={habits.shoppingFrequency}
                       onChange={(e) => setHabits({ ...habits, shoppingFrequency: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none"
@@ -352,8 +362,9 @@ export default function Onboarding() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs text-slate-400 font-semibold block">Recycling commitment</label>
+                    <label htmlFor="onboard-recycling" className="text-xs text-slate-400 font-semibold block">Recycling commitment</label>
                     <select
+                      id="onboard-recycling"
                       value={habits.recyclingHabits}
                       onChange={(e) => setHabits({ ...habits, recyclingHabits: e.target.value })}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-slate-200 focus:outline-none"
@@ -393,7 +404,7 @@ export default function Onboarding() {
       </main>
 
       {/* Footer */}
-      <footer className="max-w-md w-full mx-auto text-center text-[10px] text-slate-600 z-10">
+      <footer role="contentinfo" className="max-w-md w-full mx-auto text-center text-[10px] text-slate-600 z-10">
         Your data is saved locally on your client browser environment. No tracking tags active.
       </footer>
 

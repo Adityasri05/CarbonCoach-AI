@@ -62,12 +62,13 @@ export default function TabCarbonTwin() {
           {/* Slider 1: Public Transport */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs sm:text-sm">
-              <span className="text-slate-300 font-semibold">
+              <label htmlFor="slider-transport" className="text-slate-300 font-semibold cursor-pointer">
                 Public Transport / Active Transit
-              </span>
+              </label>
               <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded-full">{publicTransport} days/week</span>
             </div>
             <input
+              id="slider-transport"
               type="range"
               min="0"
               max="7"
@@ -85,10 +86,13 @@ export default function TabCarbonTwin() {
           {/* Slider 2: Meat Consumption */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs sm:text-sm">
-              <span className="text-slate-300 font-semibold">Meat/Animal Product Meals</span>
+              <label htmlFor="slider-meat" className="text-slate-300 font-semibold cursor-pointer">
+                Meat/Animal Product Meals
+              </label>
               <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded-full">{meatMeals} meals/wk</span>
             </div>
             <input
+              id="slider-meat"
               type="range"
               min="0"
               max="21"
@@ -106,10 +110,13 @@ export default function TabCarbonTwin() {
           {/* Slider 3: Electricity Usage */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs sm:text-sm">
-              <span className="text-slate-300 font-semibold">Monthly Electricity</span>
+              <label htmlFor="slider-electricity" className="text-slate-300 font-semibold cursor-pointer">
+                Monthly Electricity
+              </label>
               <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded-full">{electricity} kWh</span>
             </div>
             <input
+              id="slider-electricity"
               type="range"
               min="50"
               max="600"
@@ -127,10 +134,13 @@ export default function TabCarbonTwin() {
           {/* Slider 4: Flight Frequency */}
           <div className="space-y-2">
             <div className="flex justify-between text-xs sm:text-sm">
-              <span className="text-slate-300 font-semibold">Annual Flights</span>
+              <label htmlFor="slider-flights" className="text-slate-300 font-semibold cursor-pointer">
+                Annual Flights
+              </label>
               <span className="text-emerald-400 font-black text-xs bg-emerald-500/10 px-2 py-0.5 rounded-full">{flights} flights/yr</span>
             </div>
             <input
+              id="slider-flights"
               type="range"
               min="0"
               max="12"
@@ -175,7 +185,7 @@ export default function TabCarbonTwin() {
             transition={{ type: "spring", stiffness: 100, damping: 12 }}
             className="w-28 h-28 sm:w-36 sm:h-36 relative z-10"
           >
-            <svg viewBox="0 0 100 100" className="w-full h-full">
+            <svg viewBox="0 0 100 100" className="w-full h-full" aria-hidden="true">
               {/* Ground */}
               <ellipse cx="50" cy="90" rx="30" ry="6" fill="#1e293b" />
               <ellipse cx="50" cy="90" rx="20" ry="3" fill="#10b981" fillOpacity="0.4" />

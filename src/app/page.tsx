@@ -24,7 +24,7 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-dark-bg text-slate-100 selection:bg-emerald-500/30 selection:text-emerald-300">
       
       {/* Header Navigation */}
-      <header className="fixed top-0 left-0 right-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-900">
+      <header role="banner" className="fixed top-0 left-0 right-0 z-40 bg-slate-950/80 backdrop-blur-md border-b border-slate-900">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 group">
             <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl group-hover:bg-emerald-500/20 transition-all">
@@ -36,7 +36,7 @@ export default function Home() {
           </Link>
 
           {/* Desktop navigation */}
-          <nav className="hidden md:flex items-center gap-8 text-xs sm:text-sm font-semibold text-slate-400">
+          <nav aria-label="Desktop primary navigation" className="hidden md:flex items-center gap-8 text-xs sm:text-sm font-semibold text-slate-400">
             <a href="#features" className="hover:text-white transition-colors">Features</a>
             <a href="#impact" className="hover:text-white transition-colors">Our Impact</a>
             <a href="#faq" className="hover:text-white transition-colors">FAQ</a>

@@ -28,7 +28,7 @@ export default function LandingHero({ onGetStarted, onCalculate }: LandingHeroPr
             transition={{ duration: 0.5 }}
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold uppercase tracking-wider"
           >
-            <SparklesIcon className="w-3.5 h-3.5" />
+            <SparklesIcon className="w-3.5 h-3.5" aria-hidden="true" />
             AI-Powered Sustainability Platform
           </motion.div>
 
@@ -117,9 +117,8 @@ export default function LandingHero({ onGetStarted, onCalculate }: LandingHeroPr
             <div className="absolute inset-4 rounded-full border border-slate-700/30 pointer-events-none" />
             <div className="absolute inset-10 rounded-full border border-dashed border-teal-500/20 animate-spin-slow pointer-events-none" style={{ animationDirection: "reverse" }} />
 
-            {/* Earth Core Concept */}
             <div className="absolute inset-16 bg-slate-900 rounded-full shadow-2xl flex items-center justify-center overflow-hidden border border-slate-800">
-              <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-400 animate-spin-slow" style={{ animationDuration: "120s" }}>
+              <svg viewBox="0 0 100 100" className="w-full h-full text-emerald-400 animate-spin-slow" aria-hidden="true" style={{ animationDuration: "120s" }}>
                 {/* Oceans Background */}
                 <circle cx="50" cy="50" r="48" fill="#1e293b" />
                 {/* Continents (Simplified premium vector shapes) */}
