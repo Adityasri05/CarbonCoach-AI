@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import {
   TrendingDown,
@@ -11,7 +11,8 @@ import {
   Sparkles,
   ArrowRight,
   PieChartIcon,
-  BarChartIcon
+  BarChartIcon,
+  Loader2
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -32,6 +33,14 @@ export default function TabDashboard() {
   const { carbonScore, monthlyEmissions, greenPoints, level, streak } = useApp();
   const [chartType, setChartType] = useState<"pie" | "bar">("pie");
   const [trendTimeframe, setTrendTimeframe] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setMounted(true);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, []);
 
   // Dynamic calculations based on current carbon score
   const scorePercentOfUSAvg = Math.round((carbonScore / 16.0) * 100); // US average is roughly 16 Tons
@@ -271,53 +280,60 @@ export default function TabDashboard() {
           </div>
 
           <div className="h-52 sm:h-64 w-full flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              {chartType === "pie" ? (
-                <PieChart>
-                  <Pie
-                    data={breakdownData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={50}
-                    outerRadius={75}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {breakdownData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1e293b",
-                      borderColor: "rgba(255,255,255,0.08)",
-                      borderRadius: "12px",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
-                  />
-                </PieChart>
-              ) : (
-                <BarChart data={breakdownData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
-                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "#1e293b",
-                      borderColor: "rgba(255,255,255,0.08)",
-                      borderRadius: "12px",
-                      color: "#fff",
-                      fontSize: "12px",
-                    }}
-                  />
-                  <Bar dataKey="value" radius={[6, 6, 0, 0]}>
-                    {breakdownData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              )}
-            </ResponsiveContainer>
+            {mounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                {chartType === "pie" ? (
+                  <PieChart>
+                    <Pie
+                      data={breakdownData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={75}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {breakdownData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#1e293b",
+                        borderColor: "rgba(255,255,255,0.08)",
+                        borderRadius: "12px",
+                        color: "#fff",
+                        fontSize: "12px",
+                      }}
+                    />
+                  </PieChart>
+                ) : (
+                  <BarChart data={breakdownData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                    <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
+                    <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "#1e293b",
+                        borderColor: "rgba(255,255,255,0.08)",
+                        borderRadius: "12px",
+                        color: "#fff",
+                        fontSize: "12px",
+                      }}
+                    />
+                    <Bar dataKey="value" radius={[6, 6, 0, 0]}>
+                      {breakdownData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                )}
+              </ResponsiveContainer>
+            ) : (
+              <div role="status" aria-label="Loading chart" className="flex flex-col items-center justify-center gap-2">
+                <Loader2 className="animate-spin text-emerald-400" size={24} />
+                <span className="text-xs text-slate-500">Loading chart...</span>
+              </div>
+            )}
           </div>
 
           {/* Custom Legends list */}
@@ -357,36 +373,43 @@ export default function TabDashboard() {
             </div>
           </div>
 
-          <div className="h-52 sm:h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={currentTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
-                <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "#1e293b",
-                    borderColor: "rgba(255,255,255,0.08)",
-                    borderRadius: "12px",
-                    color: "#fff",
-                    fontSize: "12px",
-                  }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="Emissions"
-                  stroke="#10B981"
-                  strokeWidth={2.5}
-                  activeDot={{ r: 5 }}
-                  dot={{ r: 3, stroke: "#10B981", strokeWidth: 2, fill: "#0F172A" }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+          <div className="h-52 sm:h-64 w-full flex items-center justify-center">
+            {mounted ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={currentTrendData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorLine" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10B981" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="name" stroke="#64748b" fontSize={10} tickLine={false} />
+                  <YAxis stroke="#64748b" fontSize={10} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "#1e293b",
+                      borderColor: "rgba(255,255,255,0.08)",
+                      borderRadius: "12px",
+                      color: "#fff",
+                      fontSize: "12px",
+                    }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="Emissions"
+                    stroke="#10B981"
+                    strokeWidth={2.5}
+                    activeDot={{ r: 5 }}
+                    dot={{ r: 3, stroke: "#10B981", strokeWidth: 2, fill: "#0F172A" }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <div role="status" aria-label="Loading chart" className="flex flex-col items-center justify-center gap-2">
+                <Loader2 className="animate-spin text-emerald-400" size={24} />
+                <span className="text-xs text-slate-500">Loading chart...</span>
+              </div>
+            )}
           </div>
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 mt-2 border-t border-slate-800/60 pt-3">
