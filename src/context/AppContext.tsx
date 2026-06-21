@@ -86,6 +86,8 @@ interface AppContextType {
   }>;
   
   // Actions
+  login: (name: string, email: string) => void;
+  signUp: (name: string, email: string) => void;
   completeOnboarding: (profile: Partial<UserProfile>, habits: Partial<Habits>) => void;
   updateHabits: (habits: Partial<Habits>) => void;
   joinChallenge: (challengeId: string) => void;
@@ -295,6 +297,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
+  const login = (name: string, email: string) => {
+    setUser({
+      name: name || "Alex Rivera",
+      age: "26",
+      country: "United States",
+      occupation: "Software Designer",
+      onboarded: true,
+    });
+    setGreenPoints(1250);
+    setXp(750);
+    setLevel(3);
+    setStreak(5);
+  };
+
+  const signUp = (name: string, email: string) => {
+    setUser({
+      name: name || "New User",
+      age: "",
+      country: "United States",
+      occupation: "",
+      onboarded: false,
+    });
+    setGreenPoints(0);
+    setXp(0);
+    setLevel(1);
+    setStreak(0);
+  };
+
   const completeOnboarding = (profile: Partial<UserProfile>, userHabits: Partial<Habits>) => {
     setUser((prev) => ({ ...prev, ...profile, onboarded: true }));
     setHabits((prev) => ({ ...prev, ...userHabits }));
@@ -483,6 +513,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         chatHistory,
         notifications,
         cameraScans,
+        login,
+        signUp,
         completeOnboarding,
         updateHabits,
         joinChallenge,

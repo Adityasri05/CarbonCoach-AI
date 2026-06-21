@@ -9,7 +9,7 @@ import Link from "next/link";
 
 export default function AuthPage() {
   const router = useRouter();
-  const { addNotification } = useApp();
+  const { addNotification, login, signUp } = useApp();
   const [formState, setFormState] = useState<"login" | "signup" | "forgot">("login");
   
   // Fields state
@@ -27,9 +27,11 @@ export default function AuthPage() {
     setTimeout(() => {
       setIsLoading(false);
       if (formState === "login") {
+        login(name || email.split("@")[0], email);
         addNotification("success", "Login successful! Welcome back.");
         router.push("/dashboard");
       } else if (formState === "signup") {
+        signUp(name, email);
         addNotification("success", "Sign up successful! Let's initialize your profile.");
         router.push("/onboarding");
       } else {
@@ -43,6 +45,7 @@ export default function AuthPage() {
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
+      login("Google User", email || "google-user@example.com");
       addNotification("success", "Google authentication successful!");
       router.push("/dashboard");
     }, 1000);
