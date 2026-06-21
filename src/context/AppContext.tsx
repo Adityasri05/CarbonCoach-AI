@@ -119,6 +119,7 @@ interface AppContextType {
   redeemReward: (rewardId: string) => boolean;
   sendChatMessage: (text: string) => Promise<void>;
   triggerCameraScan: (category: string, imageUrl: string) => void;
+  scanUploadedImage: (base64Data: string, mimeType: string, imageUrl: string) => Promise<void>;
   addXPPoints: (amount: number) => void;
   addNotification: (type: "success" | "info" | "achievement" | "streak" | "error", message: string) => void;
   clearNotification: (id: string) => void;
@@ -358,6 +359,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             if (data.xp !== undefined) setXp(data.xp);
             if (data.level !== undefined) setLevel(data.level);
             if (data.streak !== undefined) setStreak(data.streak);
+            if (data.challenges) setChallenges(data.challenges);
+            if (data.rewards) setRewards(data.rewards);
+            if (data.cameraScans) {
+              setCameraScans(
+                data.cameraScans.map((scan: {
+                  id: string;
+                  item: string;
+                  category: string;
+                  emission: number;
+                  alternative: number;
+                  altName: string;
+                  reduction: number;
+                  imageUrl: string;
+                  timestamp?: string | Date;
+                }) => ({
+                  ...scan,
+                  timestamp: scan.timestamp ? new Date(scan.timestamp) : new Date(),
+                }))
+              );
+            }
           } else {
             // New user — set basic profile
             setUser({
@@ -406,17 +427,34 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   }, [firebaseUser]);
 
-  // Also persist to localStorage as offline fallback
+  // Also persist to localStorage and Firestore as dynamic sync
   React.useEffect(() => {
-    if (typeof window !== "undefined" && user.uid) {
+    if (typeof window !== "undefined" && user.uid && !isAuthLoading) {
       localStorage.setItem("carbon_user", JSON.stringify(user));
       localStorage.setItem("carbon_habits", JSON.stringify(habits));
       localStorage.setItem("carbon_points", greenPoints.toString());
       localStorage.setItem("carbon_xp", xp.toString());
       localStorage.setItem("carbon_level", level.toString());
       localStorage.setItem("carbon_streak", streak.toString());
+      localStorage.setItem("carbon_challenges", JSON.stringify(challenges));
+      localStorage.setItem("carbon_scans", JSON.stringify(cameraScans));
+
+      // Auto-sync state with Firestore
+      saveToFirestore({
+        habits,
+        greenPoints,
+        xp,
+        level,
+        streak,
+        challenges,
+        rewards,
+        cameraScans: cameraScans.map(scan => ({
+          ...scan,
+          timestamp: scan.timestamp.toISOString()
+        }))
+      });
     }
-  }, [user, habits, greenPoints, xp, level, streak]);
+  }, [user, isAuthLoading, habits, greenPoints, xp, level, streak, challenges, rewards, cameraScans, saveToFirestore]);
 
   // ──────────────────────────────────────────────
   // Notification system
@@ -789,6 +827,117 @@ User Profile/Habits:
     }, 1500);
   }, [addNotification, addXPPoints]);
 
+  const scanUploadedImage = useCallback(async (base64Data: string, mimeType: string, imageUrl: string) => {
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+    
+    let item = "Uploaded Item";
+    let category = "shopping";
+    let emission = 2.5;
+    let alternative = 0.6;
+    let altName = "Eco-Friendly Swap";
+    let reduction = 76;
+    let success = false;
+
+    if (apiKey) {
+      try {
+        const systemPrompt = "You are CarbonCoach Vision, an AI that analyzes images, estimates their carbon footprints, and recommends green alternatives. You respond ONLY in valid JSON matching the schema.";
+        const userPrompt = "Analyze this image and return a JSON object with: item (string, name of detected item), category (string, one of: meal, vehicle, appliance, shopping, waste), emission (float, estimated carbon footprint in kg CO2), altName (string, name of a lower-carbon green alternative), alternative (float, estimated carbon footprint of alternative in kg CO2), reduction (integer, percentage emission reduction, e.g. 75). Use ONLY this JSON schema, no extra text.";
+
+        const response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${apiKey}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              systemInstruction: { parts: [{ text: systemPrompt }] },
+              contents: [
+                {
+                  parts: [
+                    { text: userPrompt },
+                    {
+                      inlineData: {
+                        mimeType: mimeType,
+                        data: base64Data
+                      }
+                    }
+                  ]
+                }
+              ],
+              generationConfig: {
+                responseMimeType: "application/json",
+                temperature: 0.2
+              }
+            })
+          }
+        );
+
+        if (response.ok) {
+          const data = await response.json();
+          let replyText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (replyText) {
+            if (replyText.includes("```")) {
+              replyText = replyText.replace(/```json/g, "").replace(/```/g, "").trim();
+            }
+            const parsed = JSON.parse(replyText);
+            if (parsed.item) {
+              item = parsed.item;
+              category = parsed.category || "shopping";
+              emission = Number(parsed.emission) || 2.5;
+              altName = parsed.altName || "Eco-Friendly Swap";
+              alternative = Number(parsed.alternative) || 0.6;
+              reduction = Number(parsed.reduction) || Math.round(((emission - alternative) / emission) * 100);
+              success = true;
+            }
+          }
+        }
+      } catch (err) {
+        console.warn("[CarbonCoach] Gemini Vision API call failed, using heuristic fallback:", err);
+      }
+    }
+
+    if (!success) {
+      if (imageUrl.includes("burger") || imageUrl.includes("food") || mimeType.includes("meal")) {
+        item = "Custom Meal Combo";
+        category = "meal";
+        emission = 5.2;
+        altName = "Plant-Based Alternative";
+        alternative = 1.1;
+        reduction = 79;
+      } else if (imageUrl.includes("car") || imageUrl.includes("suv") || mimeType.includes("vehicle")) {
+        item = "Conventional SUV/Sedan";
+        category = "vehicle";
+        emission = 12.8;
+        altName = "Hybrid / e-Bike Transit";
+        alternative = 2.4;
+        reduction = 81;
+      } else {
+        item = "Electronic Appliance / Consumable";
+        category = "appliance";
+        emission = 3.8;
+        altName = "Energy Star Alternative";
+        alternative = 0.9;
+        reduction = 76;
+      }
+    }
+
+    const newScan = {
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36),
+      item,
+      category,
+      emission,
+      alternative,
+      altName,
+      reduction,
+      imageUrl,
+      timestamp: new Date(),
+    };
+
+    setCameraScans((prev) => [newScan, ...prev]);
+    addNotification("success", `📸 Carbon Camera detected: ${item}! +50 XP`);
+    addXPPoints(50);
+    setGreenPoints((pts) => pts + 20);
+  }, [addNotification, addXPPoints]);
+
   // ──────────────────────────────────────────────
   // Logout
   // ──────────────────────────────────────────────
@@ -863,6 +1012,7 @@ User Profile/Habits:
         redeemReward,
         sendChatMessage,
         triggerCameraScan,
+        scanUploadedImage,
         addXPPoints,
         addNotification,
         clearNotification,

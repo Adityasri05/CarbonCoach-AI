@@ -30,7 +30,7 @@ import {
 import { motion } from "framer-motion";
 
 export default function TabDashboard() {
-  const { carbonScore, monthlyEmissions, greenPoints, level, streak } = useApp();
+  const { carbonScore, monthlyEmissions, greenPoints, level, streak, habits, setActiveTab } = useApp();
   const [chartType, setChartType] = useState<"pie" | "bar">("pie");
   const [trendTimeframe, setTrendTimeframe] = useState<"daily" | "weekly" | "monthly">("weekly");
   const [mounted, setMounted] = useState(false);
@@ -46,13 +46,13 @@ export default function TabDashboard() {
   const scorePercentOfUSAvg = Math.round((carbonScore / 16.0) * 100); // US average is roughly 16 Tons
 
   // Category breakdown mock data based on habits
-  const breakdownData = [
+  const breakdownData = React.useMemo(() => [
     { name: "Transport", value: Math.round(carbonScore * 0.42 * 10) / 10, color: "#10B981" },
     { name: "Energy", value: Math.round(carbonScore * 0.28 * 10) / 10, color: "#14B8A6" },
     { name: "Food", value: Math.round(carbonScore * 0.15 * 10) / 10, color: "#0EA5E9" },
     { name: "Shopping", value: Math.round(carbonScore * 0.10 * 10) / 10, color: "#F59E0B" },
     { name: "Waste", value: Math.round(carbonScore * 0.05 * 10) / 10, color: "#EF4444" },
-  ];
+  ], [carbonScore]);
 
   // Daily, weekly, monthly trends data
   const trendDataMap = {
@@ -84,32 +84,82 @@ export default function TabDashboard() {
 
   const currentTrendData = trendDataMap[trendTimeframe];
 
-  const aiInsights = [
-    {
-      id: 1,
-      title: "Transportation Alert",
-      desc: `Your transportation contributes 42% of your footprint (${breakdownData[0].value} Tons CO₂).`,
-      impact: "High Impact Area",
-      action: "Try active transit",
-      color: "border-emerald-500/30 text-emerald-400 bg-emerald-500/5",
-    },
-    {
-      id: 2,
-      title: "Smart Transit Tip",
-      desc: "Using public transport 3 days/week could save 240 kg CO₂ annually.",
-      impact: "Saves 240 kg CO₂/yr",
-      action: "Review routes",
-      color: "border-teal-500/30 text-teal-400 bg-teal-500/5",
-    },
-    {
-      id: 3,
-      title: "Energy Efficiency Tip",
-      desc: "Reducing AC usage by 1 hour/day can reduce emissions by 110 kg/year.",
-      impact: "Saves 110 kg CO₂/yr",
-      action: "Set timers",
-      color: "border-sky-500/30 text-sky-400 bg-sky-500/5",
-    },
-  ];
+  const aiInsights = React.useMemo(() => {
+    const insights = [];
+
+    // 1. Transportation Alert
+    if (habits.vehicleType === "Gasoline" || habits.vehicleType === "Diesel") {
+      const co2Saving = Math.round(habits.travelDistance * 52 * 0.18 * 3);
+      insights.push({
+        id: 1,
+        title: "Transportation Alert",
+        desc: `Your ${habits.vehicleType} car contributes 42% of your footprint (${breakdownData[0].value} Tons CO₂). Using public transit 3 days/week saves ~${co2Saving} kg CO₂/yr.`,
+        impact: `Saves ~${co2Saving} kg/yr`,
+        action: "Simulate Twin",
+        color: "border-emerald-500/30 text-emerald-400 bg-emerald-500/5",
+        targetTab: "carbon_twin",
+      });
+    } else {
+      insights.push({
+        id: 1,
+        title: "Transit Champion",
+        desc: `Your green transit choices (${habits.vehicleType}) are keeping emissions extremely low! Continue walking/cycling to save more.`,
+        impact: "Low Impact Transit",
+        action: "View Challenges",
+        color: "border-emerald-500/30 text-emerald-400 bg-emerald-500/5",
+        targetTab: "challenges",
+      });
+    }
+
+    // 2. Energy Efficiency Tip
+    if (habits.acUsage > 2) {
+      const acSaving = Math.round(habits.acUsage * 365 * 0.5 * 0.3);
+      insights.push({
+        id: 2,
+        title: "Energy Efficiency Tip",
+        desc: `Reducing your daily AC usage by 1 hour can lower emissions by ~${acSaving} kg CO₂ annually. Try setting automated timers!`,
+        impact: `Saves ~${acSaving} kg/yr`,
+        action: "Simulate Twin",
+        color: "border-sky-500/30 text-sky-400 bg-sky-500/5",
+        targetTab: "carbon_twin",
+      });
+    } else {
+      insights.push({
+        id: 2,
+        title: "Power Saver Award",
+        desc: "Excellent power management! Keeping AC usage low saves tons of carbon compared to the national average. Consider LED retrofits.",
+        impact: "Zero High-AC Waste",
+        action: "View Challenges",
+        color: "border-sky-500/30 text-sky-400 bg-sky-500/5",
+        targetTab: "challenges",
+      });
+    }
+
+    // 3. Dietary Swap Advice
+    if (habits.foodHabit === "Non-Vegetarian") {
+      insights.push({
+        id: 3,
+        title: "Dietary Swap Advice",
+        desc: "Swapping beef or pork for a plant-based meal twice a week avoids ~140 kg CO₂ annually. Taste the future of green foods!",
+        impact: "Saves ~140 kg/yr",
+        action: "Scan Meal",
+        color: "border-teal-500/30 text-teal-400 bg-teal-500/5",
+        targetTab: "camera",
+      });
+    } else {
+      insights.push({
+        id: 3,
+        title: "Green Diet Champion",
+        desc: `As a ${habits.foodHabit}, your food carbon footprint is up to 70% lower than typical averages! Share your recipes to inspire others.`,
+        impact: "Low Carbon Diet",
+        action: "Scan Food",
+        color: "border-teal-500/30 text-teal-400 bg-teal-500/5",
+        targetTab: "camera",
+      });
+    }
+
+    return insights;
+  }, [habits, breakdownData]);
 
   const cardVariants = {
     hidden: { opacity: 0, y: 16 },
@@ -454,7 +504,10 @@ export default function TabDashboard() {
 
               <div className="flex justify-between items-center mt-2 pt-2 border-t border-slate-800/20 text-[10px] sm:text-[11px]">
                 <span className="font-semibold text-emerald-400">{ins.impact}</span>
-                <button className="flex items-center gap-1 hover:gap-1.5 transition-all text-slate-300 font-bold hover:text-white cursor-pointer">
+                <button
+                  onClick={() => setActiveTab(ins.targetTab)}
+                  className="flex items-center gap-1 hover:gap-1.5 transition-all text-slate-300 font-bold hover:text-white cursor-pointer"
+                >
                   {ins.action} <ArrowRight size={12} />
                 </button>
               </div>

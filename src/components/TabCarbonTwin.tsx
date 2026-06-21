@@ -1,18 +1,57 @@
 "use client";
 
 import React, { useState } from "react";
-import { useApp } from "@/context/AppContext";
+import { useApp, Habits } from "@/context/AppContext";
 import { Sparkles, Sliders, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function TabCarbonTwin() {
-  const { carbonScore } = useApp();
+  const { carbonScore, updateHabits, addNotification, addXPPoints } = useApp();
   
   // Simulation Sliders state
   const [publicTransport, setPublicTransport] = useState(1); // days/week
   const [meatMeals, setMeatMeals] = useState(12); // meals/week
   const [electricity, setElectricity] = useState(250); // kWh/month
   const [flights, setFlights] = useState(3); // flights/year
+
+  const applySimulatedProfile = () => {
+    const updated: Partial<Habits> = {};
+
+    // 1. Map publicTransport (days/week) to vehicleType
+    if (publicTransport >= 5) {
+      updated.vehicleType = "None/Public";
+    } else if (publicTransport >= 3) {
+      updated.vehicleType = "Hybrid";
+    } else if (publicTransport >= 1) {
+      updated.vehicleType = "Electric";
+    } else {
+      updated.vehicleType = "Gasoline";
+    }
+
+    // 2. Map meatMeals (meals/week) to foodHabit
+    if (meatMeals === 0) {
+      updated.foodHabit = "Vegan";
+    } else if (meatMeals <= 3) {
+      updated.foodHabit = "Vegetarian";
+    } else if (meatMeals <= 7) {
+      updated.foodHabit = "Eggetarian";
+    } else {
+      updated.foodHabit = "Non-Vegetarian";
+    }
+
+    // 3. Map electricity (kWh) to electricityBill ($)
+    updated.electricityBill = Math.round(electricity * 0.48);
+
+    // 4. Map electricity to acUsage (hours/day)
+    if (electricity > 400) updated.acUsage = 8;
+    else if (electricity > 250) updated.acUsage = 5;
+    else if (electricity > 150) updated.acUsage = 3;
+    else updated.acUsage = 1;
+
+    updateHabits(updated);
+    addNotification("success", `🌿 Carbon Twin applied! Your habits have been updated to matching levels.`);
+    addXPPoints(150);
+  };
 
   // Compute simulated carbon footprint in real-time during render
   const transportCarbon = ((7 - publicTransport) * 52 * 8) / 1000; // less public transport = more personal car driving
@@ -226,9 +265,7 @@ export default function TabCarbonTwin() {
           {/* Action button */}
           {reductionPct > 0 ? (
             <button
-              onClick={() => {
-                alert(`Habits lock-in simulated! You would save ${Math.round((carbonScore - futureScore) * 1000)} kg CO₂ per year by applying this twin profile.`);
-              }}
+              onClick={applySimulatedProfile}
               className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold py-3 rounded-xl shadow-lg cursor-pointer hover:scale-[1.02] active:scale-95 transition-all text-xs sm:text-sm relative z-10"
             >
               Apply Future Lifestyle Profile

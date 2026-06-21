@@ -7,10 +7,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 
 export default function TabCamera() {
-  const { cameraScans, triggerCameraScan } = useApp();
+  const { cameraScans, triggerCameraScan, scanUploadedImage } = useApp();
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
   const [isScanning, setIsScanning] = useState(false);
   const [scanComplete, setScanComplete] = useState(false);
+  const [customImagePreview, setCustomImagePreview] = useState<string | null>(null);
 
   const presets = [
     {
@@ -35,6 +36,7 @@ export default function TabCamera() {
 
   const handleScanPreset = (id: string) => {
     setSelectedPreset(id);
+    setCustomImagePreview(null);
     setIsScanning(true);
     setScanComplete(false);
 
@@ -44,6 +46,35 @@ export default function TabCamera() {
       setIsScanning(false);
       setScanComplete(true);
     }, 1800);
+  };
+
+  const handleCustomUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSelectedPreset(null);
+    setIsScanning(true);
+    setScanComplete(false);
+
+    const previewUrl = URL.createObjectURL(file);
+    setCustomImagePreview(previewUrl);
+
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const resultStr = reader.result as string;
+      const base64Data = resultStr.split(",")[1];
+      const mimeType = file.type;
+
+      try {
+        await scanUploadedImage(base64Data, mimeType, previewUrl);
+      } catch (err) {
+        console.error("Custom scan error:", err);
+      } finally {
+        setIsScanning(false);
+        setScanComplete(true);
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   const latestScan = cameraScans[0];
@@ -102,7 +133,7 @@ export default function TabCamera() {
           </div>
 
           {/* Upload Mock Zone */}
-          <div className="border border-dashed border-slate-700 rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center gap-2 bg-slate-900/30 hover:border-slate-500 transition-colors">
+          <div className="border border-dashed border-slate-700 rounded-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center gap-2 bg-slate-900/30 hover:border-slate-500 transition-colors relative">
             <div className="p-2.5 bg-slate-800 rounded-full text-slate-400">
               <Camera size={20} />
             </div>
@@ -110,13 +141,20 @@ export default function TabCamera() {
               <p className="text-xs font-bold text-slate-200">Upload a Custom Photo</p>
               <p className="text-[10px] text-slate-500 mt-0.5">JPEG, PNG, HEIC up to 5MB</p>
             </div>
-            <button
-              onClick={() => handleScanPreset("meal")}
-              disabled={isScanning}
-              className="mt-1 glass-panel border border-slate-700 hover:border-slate-600 text-slate-300 px-4 py-2 rounded-xl text-[11px] font-semibold cursor-pointer hover:bg-slate-800/40"
+            <label
+              htmlFor="camera-file-upload"
+              className="mt-1 glass-panel border border-slate-700 hover:border-slate-600 text-slate-300 px-4 py-2 rounded-xl text-[11px] font-semibold cursor-pointer hover:bg-slate-800/40 block text-center"
             >
-              Simulate Upload
-            </button>
+              Choose Image
+            </label>
+            <input
+              id="camera-file-upload"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleCustomUpload}
+              disabled={isScanning}
+            />
           </div>
         </div>
 
@@ -136,7 +174,7 @@ export default function TabCamera() {
                 <div className="w-32 h-32 sm:w-40 sm:h-40 border border-slate-700 rounded-2xl relative overflow-hidden bg-slate-950 flex items-center justify-center shadow-inner">
                   {/* Backdrop preset image */}
                   <Image
-                    src={presets.find((p) => p.id === selectedPreset)?.imageUrl || ""}
+                    src={selectedPreset ? (presets.find((p) => p.id === selectedPreset)?.imageUrl || "") : (customImagePreview || "")}
                     fill
                     className="object-cover opacity-40 blur-sm"
                     alt="Scanning"
@@ -173,6 +211,16 @@ export default function TabCamera() {
                     <Check size={10} /> Scan Success
                   </span>
                   <h3 className="text-sm sm:text-base font-extrabold text-white mt-1.5">Detected: {latestScan.item}</h3>
+                </div>
+
+                <div className="relative w-full h-24 rounded-xl overflow-hidden border border-slate-800">
+                  <Image
+                    src={latestScan.imageUrl}
+                    fill
+                    className="object-cover"
+                    alt={latestScan.item}
+                    unoptimized
+                  />
                 </div>
 
                 {/* Main comparison values */}
