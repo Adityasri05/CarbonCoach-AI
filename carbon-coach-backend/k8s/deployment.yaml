@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: carbon-coach-backend-deployment
+  namespace: default
+  labels:
+    app: carbon-coach-backend
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: carbon-coach-backend
+  template:
+    metadata:
+      labels:
+        app: carbon-coach-backend
+    spec:
+      containers:
+        - name: carbon-coach-backend
+          image: carboncoach/backend:latest
+          ports:
+            - containerPort: 4000
+          envFrom:
+            - configMapRef:
+                name: carbon-coach-config
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "250m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /metrics
+              port: 4000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /api
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          imagePullPolicy: IfNotPresent

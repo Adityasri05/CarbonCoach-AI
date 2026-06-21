@@ -1,0 +1,267 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum ActivityCategory {
+  TRANSPORTATION
+  ENERGY
+  FOOD
+  SHOPPING
+  WASTE
+}
+
+enum ChallengeStatus {
+  JOINED
+  COMPLETED
+  FAILED
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  passwordHash String?
+  googleId     String?     @unique
+  role         Role        @default(USER)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  profile        UserProfile?
+  habits         Habits?
+  carbonRecords  CarbonRecord[]
+  activityLogs   ActivityLog[]
+  recommendations Recommendation[]
+  simulations    CarbonTwinSimulation[]
+  challenges     ChallengeParticipation[]
+  rewards        RewardTransaction[]
+  leaderboard    Leaderboard?
+  achievements   Achievement[]
+  chatHistory    ChatHistory[]
+  visionScans    VisionAnalysis[]
+  notifications  Notification[]
+
+  @@index([email])
+}
+
+model UserProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  name       String
+  age        Int?
+  country    String   @default("United States")
+  occupation String?
+  avatarUrl  String?
+  onboarded  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Habits {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  travelDistance    Float    @default(0) // km/day
+  vehicleType       String   @default("None") // Gasoline, Diesel, Hybrid, EV, None
+  fuelType          String   @default("N/A") // Petrol, Diesel, Electric, N/A
+  electricityBill   Float    @default(0) // USD/month
+  acUsage           Float    @default(0) // hours/day
+  appliances        String[] // Array of appliances e.g. ['refrigerator']
+  foodHabit         String   @default("Non-Vegetarian") // Vegan, Vegetarian, etc
+  shoppingFrequency String   @default("Monthly") // Rarely, Monthly, Weekly, Daily
+  recyclingHabits   String   @default("Sometimes") // Never, Sometimes, Always
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model CarbonRecord {
+  id        String           @id @default(uuid())
+  userId    String
+  category  ActivityCategory
+  emissions Float            // kg CO2
+  date      DateTime         @default(now())
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, date])
+}
+
+model ActivityLog {
+  id                  String           @id @default(uuid())
+  userId              String
+  activityType        String           // e.g. "car_trip", "electricity_usage", "meat_meal"
+  quantity            Float            // e.g. 15 km, 20 kWh, 1 meal
+  unit                String           // e.g. "km", "kWh", "meals"
+  emissionsCalculated Float            // kg CO2
+  date                DateTime         @default(now())
+  createdAt           DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, activityType])
+}
+
+model Recommendation {
+  id                 String           @id @default(uuid())
+  userId             String
+  category           ActivityCategory
+  text               String
+  co2SavingEstimate Float            // kg CO2 saved per year
+  applied            Boolean          @default(false)
+  createdAt          DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CarbonTwinSimulation {
+  id             String   @id @default(uuid())
+  userId         String
+  scenarioName   String
+  transportSlider Float    // simulated public transport days/week
+  energySlider   Float    // simulated electricity bill
+  foodSlider     String   // simulated diet
+  flightsSlider  Int      // simulated flights/year
+  currentScore   Float    // Tons CO2/year
+  simulatedScore Float    // Tons CO2/year
+  createdAt      DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Challenge {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  points      Int
+  daysTotal   Int
+  category    String   // transport, food, energy, waste, shopping
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  participations ChallengeParticipation[]
+}
+
+model ChallengeParticipation {
+  id             String          @id @default(uuid())
+  userId         String
+  challengeId    String
+  progress       Float           @default(0) // 0 to 100
+  daysCompleted  Int             @default(0)
+  status         ChallengeStatus @default(JOINED)
+  joinedAt       DateTime        @default(now())
+  completedAt    DateTime?
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, challengeId])
+}
+
+model Reward {
+  id              String   @id @default(uuid())
+  title           String
+  description     String
+  pointsRequired  Int
+  impactGenerated String
+  category        String   // nature, cleanup, product, coupon
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  transactions RewardTransaction[]
+}
+
+model RewardTransaction {
+  id            String   @id @default(uuid())
+  userId        String
+  rewardId      String
+  pointsSpent   Int
+  redeemedCount Int      @default(1)
+  createdAt     DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reward Reward @relation(fields: [rewardId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Leaderboard {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  rank                Int      @default(0)
+  reductionPercentage Float    @default(0) // e.g. 28%
+  totalPoints         Int      @default(0)
+  updatedAt           DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([rank])
+}
+
+model Achievement {
+  id         String   @id @default(uuid())
+  userId     String
+  badgeName  String
+  badgeIcon  String   // emoji or asset key
+  badgeDesc  String
+  unlockedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model ChatHistory {
+  id        String   @id @default(uuid())
+  userId    String
+  sender    String   // "USER" or "BOT"
+  text      String
+  timestamp DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VisionAnalysis {
+  id                  String   @id @default(uuid())
+  userId              String
+  imageUrl            String
+  detectedItem        String
+  emission            Float    // kg CO2
+  alternative         String
+  alternativeEmission Float    // kg CO2
+  saving              Float    // kg CO2 saved
+  category            String   // meal, vehicle, appliance
+  createdAt           DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // success, info, achievement, streak
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
