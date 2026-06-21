@@ -31,9 +31,9 @@ let CameraController = class CameraController {
 };
 exports.CameraController = CameraController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Analyze image to detect item carbon emissions" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully analyzed image" }),
-    (0, common_1.Post)("analyze"),
+    (0, swagger_1.ApiOperation)({ summary: 'Analyze image to detect item carbon emissions' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully analyzed image' }),
+    (0, common_1.Post)('analyze'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -42,9 +42,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CameraController.prototype, "analyze", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Retrieve recent vision scans history logs" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched scans" }),
-    (0, common_1.Get)("history"),
+    (0, swagger_1.ApiOperation)({ summary: 'Retrieve recent vision scans history logs' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully fetched scans' }),
+    (0, common_1.Get)('history'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -52,10 +52,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CameraController.prototype, "getHistory", null);
 exports.CameraController = CameraController = __decorate([
-    (0, swagger_1.ApiTags)("Carbon Impact Camera"),
+    (0, swagger_1.ApiTags)('Carbon Impact Camera'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("camera"),
+    (0, common_1.Controller)('camera'),
     __metadata("design:paramtypes", [camera_service_1.CameraService])
 ], CameraController);
 //# sourceMappingURL=camera.controller.js.map

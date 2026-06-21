@@ -21,16 +21,16 @@ let CameraService = class CameraService {
         this.ai = new genai_1.GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     }
     async analyzeImage(userId, category, imageUrl) {
-        let detectedItem = "Unknown Object";
+        let detectedItem = 'Unknown Object';
         let emission = 2.0;
-        let alternative = "Green alternative";
+        let alternative = 'Green alternative';
         let alternativeEmission = 0.5;
         let successfullyAnalyzed = false;
         if (process.env.VISION_API_KEY) {
             try {
                 let imagePayload = {};
-                if (imageUrl.startsWith("data:")) {
-                    const commaIndex = imageUrl.indexOf(",");
+                if (imageUrl.startsWith('data:')) {
+                    const commaIndex = imageUrl.indexOf(',');
                     if (commaIndex !== -1) {
                         const base64Data = imageUrl.substring(commaIndex + 1);
                         imagePayload = { content: base64Data };
@@ -44,13 +44,13 @@ let CameraService = class CameraService {
                 }
                 const visionUrl = `https://vision.googleapis.com/v1/images:annotate?key=${process.env.VISION_API_KEY}`;
                 const visionResponse = await fetch(visionUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         requests: [
                             {
                                 image: imagePayload,
-                                features: [{ type: "LABEL_DETECTION", maxResults: 15 }],
+                                features: [{ type: 'LABEL_DETECTION', maxResults: 15 }],
                             },
                         ],
                     }),
@@ -58,61 +58,71 @@ let CameraService = class CameraService {
                 if (!visionResponse.ok) {
                     throw new Error(`Vision API response failed: ${visionResponse.statusText}`);
                 }
-                const visionData = await visionResponse.json();
-                const labels = visionData.responses?.[0]?.labelAnnotations?.map((l) => l.description) || [];
+                const visionData = (await visionResponse.json());
+                const labels = visionData.responses?.[0]?.labelAnnotations
+                    ?.map((l) => l.description || '')
+                    .filter(Boolean) || [];
                 if (labels.length > 0) {
                     const prompt = `The user scanned an image under the category "${category}".
-Google Cloud Vision detected these labels from the image: ${labels.join(", ")}.
+Google Cloud Vision detected these labels from the image: ${labels.join(', ')}.
 
 Analyze this item and estimate its carbon footprint and suggest a sustainable greener alternative.`;
                     const response = await this.ai.models.generateContent({
-                        model: process.env.GEMINI_MODEL || "gemini-2.5-flash-lite",
+                        model: process.env.GEMINI_MODEL || 'gemini-2.5-flash-lite',
                         contents: prompt,
                         config: {
-                            responseMimeType: "application/json",
+                            responseMimeType: 'application/json',
                             responseSchema: {
-                                type: "OBJECT",
+                                type: 'OBJECT',
                                 properties: {
-                                    detectedItem: { type: "STRING" },
-                                    emission: { type: "NUMBER" },
-                                    alternative: { type: "STRING" },
-                                    alternativeEmission: { type: "NUMBER" }
+                                    detectedItem: { type: 'STRING' },
+                                    emission: { type: 'NUMBER' },
+                                    alternative: { type: 'STRING' },
+                                    alternativeEmission: { type: 'NUMBER' },
                                 },
-                                required: ["detectedItem", "emission", "alternative", "alternativeEmission"]
-                            }
-                        }
+                                required: [
+                                    'detectedItem',
+                                    'emission',
+                                    'alternative',
+                                    'alternativeEmission',
+                                ],
+                            },
+                        },
                     });
-                    const parsed = JSON.parse(response.text || "{}");
-                    if (parsed.detectedItem && typeof parsed.emission === "number") {
+                    const parsed = JSON.parse(response.text || '{}');
+                    if (parsed.detectedItem && typeof parsed.emission === 'number') {
                         detectedItem = parsed.detectedItem;
                         emission = parsed.emission;
-                        alternative = parsed.alternative || "Green alternative";
-                        alternativeEmission = typeof parsed.alternativeEmission === "number" ? parsed.alternativeEmission : 0.5;
+                        alternative = parsed.alternative || 'Green alternative';
+                        alternativeEmission =
+                            typeof parsed.alternativeEmission === 'number'
+                                ? parsed.alternativeEmission
+                                : 0.5;
                         successfullyAnalyzed = true;
                     }
                 }
             }
             catch (error) {
-                console.error("Failed to dynamically analyze image with APIs, using fallback presets:", error);
+                console.error('Failed to dynamically analyze image with APIs, using fallback presets:', error);
             }
         }
         if (!successfullyAnalyzed) {
-            if (category === "meal") {
-                detectedItem = "Beef Burger & Fries";
+            if (category === 'meal') {
+                detectedItem = 'Beef Burger & Fries';
                 emission = 5.4;
-                alternative = "Beyond Plant Burger";
+                alternative = 'Beyond Plant Burger';
                 alternativeEmission = 1.2;
             }
-            else if (category === "vehicle") {
-                detectedItem = "Mid-size Gasoline SUV";
+            else if (category === 'vehicle') {
+                detectedItem = 'Mid-size Gasoline SUV';
                 emission = 14.5;
-                alternative = "Electric Hatchback / e-Bike";
+                alternative = 'Electric Hatchback / e-Bike';
                 alternativeEmission = 2.8;
             }
-            else if (category === "appliance") {
-                detectedItem = "Standard Electric Clothes Dryer";
+            else if (category === 'appliance') {
+                detectedItem = 'Standard Electric Clothes Dryer';
                 emission = 3.2;
-                alternative = "Air Drying / Energy Star Dryer";
+                alternative = 'Air Drying / Energy Star Dryer';
                 alternativeEmission = 0.8;
             }
         }
@@ -131,7 +141,9 @@ Analyze this item and estimate its carbon footprint and suggest a sustainable gr
                     category,
                 },
             });
-            const leaderboard = await tx.leaderboard.findUnique({ where: { userId } });
+            const leaderboard = await tx.leaderboard.findUnique({
+                where: { userId },
+            });
             if (leaderboard) {
                 await tx.leaderboard.update({
                     where: { userId },
@@ -143,7 +155,7 @@ Analyze this item and estimate its carbon footprint and suggest a sustainable gr
             await tx.notification.create({
                 data: {
                     userId,
-                    type: "success",
+                    type: 'success',
                     message: `📸 Detected: ${detectedItem}! Earned +20 pts, +50 XP!`,
                 },
             });
@@ -157,7 +169,7 @@ Analyze this item and estimate its carbon footprint and suggest a sustainable gr
     async getRecentScans(userId) {
         return this.prisma.visionAnalysis.findMany({
             where: { userId },
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
             take: 10,
         });
     }

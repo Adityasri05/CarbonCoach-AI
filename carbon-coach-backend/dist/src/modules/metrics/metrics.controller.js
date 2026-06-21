@@ -51,9 +51,9 @@ let MetricsController = class MetricsController {
         client.collectDefaultMetrics();
     }
     httpRequestsTotal = new client.Counter({
-        name: "http_requests_total",
-        help: "Total number of HTTP requests processed",
-        labelNames: ["method", "route", "status"],
+        name: 'http_requests_total',
+        help: 'Total number of HTTP requests processed',
+        labelNames: ['method', 'route', 'status'],
     });
     async getMetrics() {
         return client.register.metrics();
@@ -61,17 +61,17 @@ let MetricsController = class MetricsController {
 };
 exports.MetricsController = MetricsController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Expose Prometheus system performance metrics" }),
+    (0, swagger_1.ApiOperation)({ summary: 'Expose Prometheus system performance metrics' }),
     (0, common_1.Get)(),
-    (0, common_1.Header)("Content-Type", client.register.contentType),
+    (0, common_1.Header)('Content-Type', client.register.contentType),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], MetricsController.prototype, "getMetrics", null);
 exports.MetricsController = MetricsController = __decorate([
-    (0, swagger_1.ApiTags)("Monitoring"),
-    (0, common_1.Controller)("metrics"),
+    (0, swagger_1.ApiTags)('Monitoring'),
+    (0, common_1.Controller)('metrics'),
     __metadata("design:paramtypes", [])
 ], MetricsController);
 //# sourceMappingURL=metrics.controller.js.map

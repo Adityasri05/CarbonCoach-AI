@@ -31,8 +31,8 @@ let RewardsController = class RewardsController {
 };
 exports.RewardsController = RewardsController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "List all active rewards in the marketplace" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched rewards" }),
+    (0, swagger_1.ApiOperation)({ summary: 'List all active rewards in the marketplace' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully fetched rewards' }),
     (0, common_1.Get)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __metadata("design:type", Function),
@@ -40,10 +40,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], RewardsController.prototype, "getRewards", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Redeem a reward using Green Points" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully redeemed reward" }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: "Insufficient points" }),
-    (0, common_1.Post)("redeem"),
+    (0, swagger_1.ApiOperation)({ summary: 'Redeem a reward using Green Points' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully redeemed reward' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Insufficient points' }),
+    (0, common_1.Post)('redeem'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -52,10 +52,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], RewardsController.prototype, "redeem", null);
 exports.RewardsController = RewardsController = __decorate([
-    (0, swagger_1.ApiTags)("Rewards Marketplace"),
+    (0, swagger_1.ApiTags)('Rewards Marketplace'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("rewards"),
+    (0, common_1.Controller)('rewards'),
     __metadata("design:paramtypes", [rewards_service_1.RewardsService])
 ], RewardsController);
 //# sourceMappingURL=rewards.controller.js.map

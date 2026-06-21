@@ -26,16 +26,13 @@ let LeaderboardService = class LeaderboardService {
                     },
                 },
             },
-            orderBy: [
-                { reductionPercentage: "desc" },
-                { totalPoints: "desc" },
-            ],
+            orderBy: [{ reductionPercentage: 'desc' }, { totalPoints: 'desc' }],
             take: 50,
         });
         return list.map((item, idx) => ({
             rank: idx + 1,
             userId: item.userId,
-            name: item.user.profile?.name || "Eco Participant",
+            name: item.user.profile?.name || 'Eco Participant',
             avatarUrl: item.user.profile?.avatarUrl,
             reductionPercentage: item.reductionPercentage,
             totalPoints: item.totalPoints,

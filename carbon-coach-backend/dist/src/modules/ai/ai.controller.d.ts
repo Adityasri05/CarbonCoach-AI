@@ -1,4 +1,4 @@
-import { AIService } from "./ai.service";
+import { AIService } from './ai.service';
 export declare class AIController {
     private aiService;
     constructor(aiService: AIService);

@@ -34,9 +34,14 @@ let AIController = class AIController {
 };
 exports.AIController = AIController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Get or generate personalized AI emission recommendations" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully generated recommendations" }),
-    (0, common_1.Get)("recommendations"),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Get or generate personalized AI emission recommendations',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Successfully generated recommendations',
+    }),
+    (0, common_1.Get)('recommendations'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -44,9 +49,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AIController.prototype, "getRecommendations", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Chat with the CarbonCoach AI Assistant" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Returns bot reply" }),
-    (0, common_1.Post)("chat"),
+    (0, swagger_1.ApiOperation)({ summary: 'Chat with the CarbonCoach AI Assistant' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Returns bot reply' }),
+    (0, common_1.Post)('chat'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -55,9 +60,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AIController.prototype, "chat", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Retrieve user chat conversational history logs" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched history" }),
-    (0, common_1.Get)("chat/history"),
+    (0, swagger_1.ApiOperation)({ summary: 'Retrieve user chat conversational history logs' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully fetched history' }),
+    (0, common_1.Get)('chat/history'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -65,10 +70,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AIController.prototype, "getChatHistory", null);
 exports.AIController = AIController = __decorate([
-    (0, swagger_1.ApiTags)("AI Agent"),
+    (0, swagger_1.ApiTags)('AI Agent'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("ai"),
+    (0, common_1.Controller)('ai'),
     __metadata("design:paramtypes", [ai_service_1.AIService])
 ], AIController);
 //# sourceMappingURL=ai.controller.js.map

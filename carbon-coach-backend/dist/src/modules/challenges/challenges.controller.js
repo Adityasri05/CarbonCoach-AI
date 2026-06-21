@@ -34,8 +34,8 @@ let ChallengesController = class ChallengesController {
 };
 exports.ChallengesController = ChallengesController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "List all active eco challenges and user status" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched challenges" }),
+    (0, swagger_1.ApiOperation)({ summary: 'List all active eco challenges and user status' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully fetched challenges' }),
     (0, common_1.Get)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
@@ -44,9 +44,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChallengesController.prototype, "getChallenges", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Join a weekly sustainability challenge" }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: "Successfully joined challenge" }),
-    (0, common_1.Post)("join"),
+    (0, swagger_1.ApiOperation)({ summary: 'Join a weekly sustainability challenge' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Successfully joined challenge' }),
+    (0, common_1.Post)('join'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -55,9 +55,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChallengesController.prototype, "joinChallenge", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Log days progress towards a joined challenge" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully updated progress" }),
-    (0, common_1.Post)("complete"),
+    (0, swagger_1.ApiOperation)({ summary: 'Log days progress towards a joined challenge' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully updated progress' }),
+    (0, common_1.Post)('complete'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -66,10 +66,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], ChallengesController.prototype, "logProgress", null);
 exports.ChallengesController = ChallengesController = __decorate([
-    (0, swagger_1.ApiTags)("Eco Challenges"),
+    (0, swagger_1.ApiTags)('Eco Challenges'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("challenges"),
+    (0, common_1.Controller)('challenges'),
     __metadata("design:paramtypes", [challenges_service_1.ChallengesService])
 ], ChallengesController);
 //# sourceMappingURL=challenges.controller.js.map

@@ -22,19 +22,23 @@ let TwinService = class TwinService {
             where: { id: userId },
             include: { habits: true },
         });
-        const currentScore = 6.2;
+        const currentScore = user ? 6.2 : 6.2;
         const simulatedTransport = ((7 - transportSlider) * 52 * 8) / 1000;
         const simulatedEnergy = (energySlider * 12 * 7 * 0.4) / 1000 + (365 * 0.5 * 2) / 1000;
         let simulatedFood = 2.1;
-        if (foodSlider === "Vegan")
+        if (foodSlider === 'Vegan')
             simulatedFood = 0.6;
-        else if (foodSlider === "Vegetarian")
+        else if (foodSlider === 'Vegetarian')
             simulatedFood = 0.9;
-        else if (foodSlider === "Eggetarian")
+        else if (foodSlider === 'Eggetarian')
             simulatedFood = 1.1;
         const simulatedFlights = flightsSlider * 0.9;
         const wasteShoppingBaseline = 1.1;
-        const simulatedScore = parseFloat((simulatedTransport + simulatedEnergy + simulatedFood + simulatedFlights + wasteShoppingBaseline).toFixed(1));
+        const simulatedScore = parseFloat((simulatedTransport +
+            simulatedEnergy +
+            simulatedFood +
+            simulatedFlights +
+            wasteShoppingBaseline).toFixed(1));
         const savingPercentage = Math.max(0, Math.round(((currentScore - simulatedScore) / currentScore) * 100));
         const simulation = await this.prisma.carbonTwinSimulation.create({
             data: {
@@ -57,7 +61,7 @@ let TwinService = class TwinService {
     async getHistory(userId) {
         return this.prisma.carbonTwinSimulation.findMany({
             where: { userId },
-            orderBy: { createdAt: "desc" },
+            orderBy: { createdAt: 'desc' },
             take: 10,
         });
     }

@@ -1,4 +1,4 @@
-import { CameraService } from "./camera.service";
+import { CameraService } from './camera.service';
 export declare class CameraController {
     private cameraService;
     constructor(cameraService: CameraService);

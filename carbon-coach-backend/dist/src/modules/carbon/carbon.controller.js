@@ -34,9 +34,9 @@ let CarbonController = class CarbonController {
 };
 exports.CarbonController = CarbonController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Log a new daily activity emission" }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: "Successfully logged activity" }),
-    (0, common_1.Post)("log"),
+    (0, swagger_1.ApiOperation)({ summary: 'Log a new daily activity emission' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Successfully logged activity' }),
+    (0, common_1.Post)('log'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -45,9 +45,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CarbonController.prototype, "logActivity", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Retrieve recent logged activity history logs" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully retrieved history" }),
-    (0, common_1.Get)("history"),
+    (0, swagger_1.ApiOperation)({ summary: 'Retrieve recent logged activity history logs' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully retrieved history' }),
+    (0, common_1.Get)('history'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -55,9 +55,11 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CarbonController.prototype, "getHistory", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Fetch total summary footprint and categories breakdown" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched summary" }),
-    (0, common_1.Get)("summary"),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Fetch total summary footprint and categories breakdown',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully fetched summary' }),
+    (0, common_1.Get)('summary'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -65,10 +67,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CarbonController.prototype, "getSummary", null);
 exports.CarbonController = CarbonController = __decorate([
-    (0, swagger_1.ApiTags)("Carbon Tracker"),
+    (0, swagger_1.ApiTags)('Carbon Tracker'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("tracking"),
+    (0, common_1.Controller)('tracking'),
     __metadata("design:paramtypes", [carbon_service_1.CarbonService])
 ], CarbonController);
 //# sourceMappingURL=carbon.controller.js.map

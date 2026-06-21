@@ -1,4 +1,4 @@
-import { ChallengesService } from "./challenges.service";
+import { ChallengesService } from './challenges.service';
 export declare class ChallengesController {
     private challengesService;
     constructor(challengesService: ChallengesService);

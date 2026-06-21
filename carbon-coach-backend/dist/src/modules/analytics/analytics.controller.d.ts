@@ -1,4 +1,4 @@
-import { AnalyticsService } from "./analytics.service";
+import { AnalyticsService } from './analytics.service';
 export declare class AnalyticsController {
     private analyticsService;
     constructor(analyticsService: AnalyticsService);
@@ -21,7 +21,7 @@ export declare class AnalyticsController {
         user: {
             id: string;
         };
-    }, timeframe: "daily" | "weekly" | "monthly"): Promise<{
+    }, timeframe: 'daily' | 'weekly' | 'monthly'): Promise<{
         name: string;
         Emissions: number;
     }[]>;

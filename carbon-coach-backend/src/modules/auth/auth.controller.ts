@@ -4,7 +4,6 @@ import {
   Body,
   HttpCode,
   HttpStatus,
-  Req,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -78,7 +77,7 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(@Req() req: { user: { id: string } }) {
+  logout() {
     // In production, we can store refresh tokens in a Redis blocklist.
     return { success: true, message: 'Successfully logged out' };
   }

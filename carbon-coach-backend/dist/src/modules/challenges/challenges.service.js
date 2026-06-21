@@ -29,7 +29,7 @@ let ChallengesService = class ChallengesService {
             const part = participations.find((p) => p.challengeId === item.id);
             return {
                 ...item,
-                status: part ? part.status : "NOT_JOINED",
+                status: part ? part.status : 'NOT_JOINED',
                 daysCompleted: part ? part.daysCompleted : 0,
                 progress: part ? part.progress : 0,
             };
@@ -40,7 +40,7 @@ let ChallengesService = class ChallengesService {
             where: { id: challengeId },
         });
         if (!challenge) {
-            throw new common_1.NotFoundException("Challenge not found");
+            throw new common_1.NotFoundException('Challenge not found');
         }
         const existing = await this.prisma.challengeParticipation.findUnique({
             where: {
@@ -48,7 +48,7 @@ let ChallengesService = class ChallengesService {
             },
         });
         if (existing) {
-            throw new common_1.BadRequestException("Already joined this challenge");
+            throw new common_1.BadRequestException('Already joined this challenge');
         }
         return this.prisma.challengeParticipation.create({
             data: {
@@ -68,10 +68,10 @@ let ChallengesService = class ChallengesService {
             include: { challenge: true },
         });
         if (!part) {
-            throw new common_1.NotFoundException("User has not joined this challenge");
+            throw new common_1.NotFoundException('User has not joined this challenge');
         }
         if (part.status === client_1.ChallengeStatus.COMPLETED) {
-            throw new common_1.BadRequestException("Challenge is already completed");
+            throw new common_1.BadRequestException('Challenge is already completed');
         }
         const completed = Math.min(part.challenge.daysTotal, part.daysCompleted + daysToAdd);
         const pct = Math.round((completed / part.challenge.daysTotal) * 100);
@@ -82,12 +82,16 @@ let ChallengesService = class ChallengesService {
                 data: {
                     daysCompleted: completed,
                     progress: pct,
-                    status: isFinished ? client_1.ChallengeStatus.COMPLETED : client_1.ChallengeStatus.JOINED,
+                    status: isFinished
+                        ? client_1.ChallengeStatus.COMPLETED
+                        : client_1.ChallengeStatus.JOINED,
                     completedAt: isFinished ? new Date() : null,
                 },
             });
             if (isFinished) {
-                const leaderboard = await tx.leaderboard.findUnique({ where: { userId } });
+                const leaderboard = await tx.leaderboard.findUnique({
+                    where: { userId },
+                });
                 if (leaderboard) {
                     await tx.leaderboard.update({
                         where: { userId },
@@ -99,7 +103,7 @@ let ChallengesService = class ChallengesService {
                 await tx.notification.create({
                     data: {
                         userId,
-                        type: "achievement",
+                        type: 'achievement',
                         message: `🏆 Completed challenge: "${part.challenge.title}"! +${part.challenge.points} Green Points!`,
                     },
                 });
@@ -107,7 +111,7 @@ let ChallengesService = class ChallengesService {
                     data: {
                         userId,
                         badgeName: part.challenge.title,
-                        badgeIcon: "🏆",
+                        badgeIcon: '🏆',
                         badgeDesc: `Completed: ${part.challenge.description}`,
                     },
                 });

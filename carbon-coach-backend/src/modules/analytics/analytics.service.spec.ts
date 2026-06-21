@@ -10,6 +10,9 @@ describe('AnalyticsService', () => {
     user: {
       findUnique: jest.fn(),
     },
+    habits: {
+      findUnique: jest.fn(),
+    },
   };
 
   beforeEach(async () => {
@@ -26,6 +29,7 @@ describe('AnalyticsService', () => {
     service = module.get<AnalyticsService>(AnalyticsService);
     prisma = module.get<PrismaService>(PrismaService);
     jest.clearAllMocks();
+    jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue(null);
   });
 
   describe('getDashboardStats', () => {

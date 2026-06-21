@@ -184,7 +184,7 @@ export class AuthService {
     try {
       const payload = this.jwtService.verify(refreshToken, {
         secret: process.env.JWT_REFRESH_SECRET || 'carbon-refresh-secret-12345',
-      });
+      }) as unknown as { sub: string; email: string };
 
       const user = await this.prisma.user.findUnique({
         where: { id: payload.sub },

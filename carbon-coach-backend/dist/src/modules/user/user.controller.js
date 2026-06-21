@@ -31,10 +31,10 @@ let UserController = class UserController {
 };
 exports.UserController = UserController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Fetch current user profile, habits, achievements" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched" }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: "Unauthorized access token" }),
-    (0, common_1.Get)("profile"),
+    (0, swagger_1.ApiOperation)({ summary: 'Fetch current user profile, habits, achievements' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully fetched' }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Unauthorized access token' }),
+    (0, common_1.Get)('profile'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -42,9 +42,11 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "getProfile", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Update user profile metadata and onboarding habits" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully updated profile" }),
-    (0, common_1.Patch)("profile"),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Update user profile metadata and onboarding habits',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully updated profile' }),
+    (0, common_1.Patch)('profile'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -53,10 +55,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], UserController.prototype, "updateProfile", null);
 exports.UserController = UserController = __decorate([
-    (0, swagger_1.ApiTags)("User Profiles"),
+    (0, swagger_1.ApiTags)('User Profiles'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("users"),
+    (0, common_1.Controller)('users'),
     __metadata("design:paramtypes", [user_service_1.UserService])
 ], UserController);
 //# sourceMappingURL=user.controller.js.map

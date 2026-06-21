@@ -43,4 +43,4 @@ async function bootstrap() {
     `📖 Swagger API documentation available at http://localhost:${port}/api`,
   );
 }
-bootstrap();
+void bootstrap();

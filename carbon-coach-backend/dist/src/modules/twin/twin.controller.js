@@ -31,9 +31,9 @@ let TwinController = class TwinController {
 };
 exports.TwinController = TwinController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Simulate a future lifestyle change scenario" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully simulated scenario" }),
-    (0, common_1.Post)("simulate"),
+    (0, swagger_1.ApiOperation)({ summary: 'Simulate a future lifestyle change scenario' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully simulated scenario' }),
+    (0, common_1.Post)('simulate'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __param(1, (0, common_1.Body)()),
@@ -42,9 +42,9 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], TwinController.prototype, "simulate", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Retrieve carbon twin simulations history logs" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully retrieved history" }),
-    (0, common_1.Get)("history"),
+    (0, swagger_1.ApiOperation)({ summary: 'Retrieve carbon twin simulations history logs' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Successfully retrieved history' }),
+    (0, common_1.Get)('history'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -52,10 +52,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], TwinController.prototype, "getHistory", null);
 exports.TwinController = TwinController = __decorate([
-    (0, swagger_1.ApiTags)("Carbon Twin AI"),
+    (0, swagger_1.ApiTags)('Carbon Twin AI'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("carbon-twin"),
+    (0, common_1.Controller)('carbon-twin'),
     __metadata("design:paramtypes", [twin_service_1.TwinService])
 ], TwinController);
 //# sourceMappingURL=twin.controller.js.map

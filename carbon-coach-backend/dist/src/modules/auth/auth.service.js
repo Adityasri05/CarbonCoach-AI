@@ -59,7 +59,7 @@ let AuthService = class AuthService {
             where: { email: dto.email },
         });
         if (existing) {
-            throw new common_1.ConflictException("Email already registered");
+            throw new common_1.ConflictException('Email already registered');
         }
         const passwordHash = await bcrypt.hash(dto.password, 10);
         const user = await this.prisma.user.create({
@@ -75,14 +75,14 @@ let AuthService = class AuthService {
                 habits: {
                     create: {
                         travelDistance: 25,
-                        vehicleType: "Gasoline",
-                        fuelType: "Petrol",
+                        vehicleType: 'Gasoline',
+                        fuelType: 'Petrol',
                         electricityBill: 120,
                         acUsage: 4,
-                        appliances: ["refrigerator", "washing_machine"],
-                        foodHabit: "Non-Vegetarian",
-                        shoppingFrequency: "Monthly",
-                        recyclingHabits: "Sometimes",
+                        appliances: ['refrigerator', 'washing_machine'],
+                        foodHabit: 'Non-Vegetarian',
+                        shoppingFrequency: 'Monthly',
+                        recyclingHabits: 'Sometimes',
                     },
                 },
                 leaderboard: {
@@ -94,9 +94,9 @@ let AuthService = class AuthService {
                 },
                 achievements: {
                     create: {
-                        badgeName: "First Step",
-                        badgeIcon: "🌱",
-                        badgeDesc: "Joined the CarbonCoach AI platform",
+                        badgeName: 'First Step',
+                        badgeIcon: '🌱',
+                        badgeDesc: 'Joined the CarbonCoach AI platform',
                     },
                 },
             },
@@ -120,11 +120,11 @@ let AuthService = class AuthService {
             include: { profile: true },
         });
         if (!user || !user.passwordHash) {
-            throw new common_1.UnauthorizedException("Invalid email or password");
+            throw new common_1.UnauthorizedException('Invalid email or password');
         }
         const valid = await bcrypt.compare(dto.password, user.passwordHash);
         if (!valid) {
-            throw new common_1.UnauthorizedException("Invalid email or password");
+            throw new common_1.UnauthorizedException('Invalid email or password');
         }
         const tokens = this.generateTokens(user.id, user.email);
         return {
@@ -156,14 +156,14 @@ let AuthService = class AuthService {
                     habits: {
                         create: {
                             travelDistance: 25,
-                            vehicleType: "Gasoline",
-                            fuelType: "Petrol",
+                            vehicleType: 'Gasoline',
+                            fuelType: 'Petrol',
                             electricityBill: 120,
                             acUsage: 4,
-                            appliances: ["refrigerator", "washing_machine"],
-                            foodHabit: "Non-Vegetarian",
-                            shoppingFrequency: "Monthly",
-                            recyclingHabits: "Sometimes",
+                            appliances: ['refrigerator', 'washing_machine'],
+                            foodHabit: 'Non-Vegetarian',
+                            shoppingFrequency: 'Monthly',
+                            recyclingHabits: 'Sometimes',
                         },
                     },
                     leaderboard: {
@@ -175,9 +175,9 @@ let AuthService = class AuthService {
                     },
                     achievements: {
                         create: {
-                            badgeName: "First Step",
-                            badgeIcon: "🌱",
-                            badgeDesc: "Joined the CarbonCoach AI platform via Google",
+                            badgeName: 'First Step',
+                            badgeIcon: '🌱',
+                            badgeDesc: 'Joined the CarbonCoach AI platform via Google',
                         },
                     },
                 },
@@ -206,29 +206,29 @@ let AuthService = class AuthService {
     async refresh(refreshToken) {
         try {
             const payload = this.jwtService.verify(refreshToken, {
-                secret: process.env.JWT_REFRESH_SECRET || "carbon-refresh-secret-12345",
+                secret: process.env.JWT_REFRESH_SECRET || 'carbon-refresh-secret-12345',
             });
             const user = await this.prisma.user.findUnique({
                 where: { id: payload.sub },
             });
             if (!user) {
-                throw new common_1.UnauthorizedException("User no longer exists");
+                throw new common_1.UnauthorizedException('User no longer exists');
             }
             return this.generateTokens(user.id, user.email);
         }
         catch {
-            throw new common_1.UnauthorizedException("Invalid or expired refresh token");
+            throw new common_1.UnauthorizedException('Invalid or expired refresh token');
         }
     }
     generateTokens(userId, email) {
         const payload = { sub: userId, email };
         const accessToken = this.jwtService.sign(payload, {
-            secret: process.env.JWT_SECRET || "carbon-secret-key-12345",
-            expiresIn: "1h",
+            secret: process.env.JWT_SECRET || 'carbon-secret-key-12345',
+            expiresIn: '1h',
         });
         const refreshToken = this.jwtService.sign(payload, {
-            secret: process.env.JWT_REFRESH_SECRET || "carbon-refresh-secret-12345",
-            expiresIn: "7d",
+            secret: process.env.JWT_REFRESH_SECRET || 'carbon-refresh-secret-12345',
+            expiresIn: '7d',
         });
         return {
             accessToken,

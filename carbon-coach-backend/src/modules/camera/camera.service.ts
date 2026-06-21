@@ -20,7 +20,8 @@ export class CameraService {
     // 1. Attempt to call Google Cloud Vision API if VISION_API_KEY is configured
     if (process.env.VISION_API_KEY) {
       try {
-        let imagePayload: any = {};
+        let imagePayload: { content?: string; source?: { imageUri: string } } =
+          {};
         if (imageUrl.startsWith('data:')) {
           const commaIndex = imageUrl.indexOf(',');
           if (commaIndex !== -1) {
@@ -53,11 +54,15 @@ export class CameraService {
           );
         }
 
-        const visionData = await visionResponse.json();
+        const visionData = (await visionResponse.json()) as {
+          responses?: Array<{
+            labelAnnotations?: Array<{ description?: string }>;
+          }>;
+        };
         const labels: string[] =
-          visionData.responses?.[0]?.labelAnnotations?.map(
-            (l: any) => l.description,
-          ) || [];
+          visionData.responses?.[0]?.labelAnnotations
+            ?.map((l) => l.description || '')
+            .filter(Boolean) || [];
 
         if (labels.length > 0) {
           // 2. Map detected labels to Carbon emissions & green alternatives using Gemini Structured Outputs
@@ -89,7 +94,12 @@ Analyze this item and estimate its carbon footprint and suggest a sustainable gr
             },
           });
 
-          const parsed = JSON.parse(response.text || '{}');
+          const parsed = JSON.parse(response.text || '{}') as {
+            detectedItem?: string;
+            emission?: number;
+            alternative?: string;
+            alternativeEmission?: number;
+          };
           if (parsed.detectedItem && typeof parsed.emission === 'number') {
             detectedItem = parsed.detectedItem;
             emission = parsed.emission;

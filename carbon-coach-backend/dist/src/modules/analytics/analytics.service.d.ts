@@ -1,4 +1,4 @@
-import { PrismaService } from "../../prisma/prisma.service";
+import { PrismaService } from '../../prisma/prisma.service';
 export declare class AnalyticsService {
     private prisma;
     constructor(prisma: PrismaService);
@@ -13,7 +13,7 @@ export declare class AnalyticsService {
             color: string;
         }[];
     }>;
-    getTrends(userId: string, timeframe: "daily" | "weekly" | "monthly"): Promise<{
+    getTrends(userId: string, timeframe: 'daily' | 'weekly' | 'monthly'): Promise<{
         name: string;
         Emissions: number;
     }[]>;

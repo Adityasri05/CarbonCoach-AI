@@ -20,7 +20,7 @@ let CarbonService = class CarbonService {
     }
     TRANSPORT_FACTORS = {
         Gasoline: 0.18,
-        Diesel: 0.20,
+        Diesel: 0.2,
         Hybrid: 0.09,
         Electric: 0.04,
         None: 0.02,
@@ -29,7 +29,7 @@ let CarbonService = class CarbonService {
         Vegan: 0.6,
         Vegetarian: 0.9,
         Eggetarian: 1.1,
-        "Non-Vegetarian": 2.1,
+        'Non-Vegetarian': 2.1,
     };
     SHOPPING_ANNUAL_TONS = {
         Daily: 1.2,
@@ -48,30 +48,37 @@ let CarbonService = class CarbonService {
         });
         if (!habits)
             return 6.2;
-        const factorKey = habits.vehicleType || "Gasoline";
+        const factorKey = habits.vehicleType || 'Gasoline';
         const transportFactor = this.TRANSPORT_FACTORS[factorKey] || 0.18;
         const transportTons = (habits.travelDistance * 365 * transportFactor) / 1000;
         const electricityTons = (habits.electricityBill * 12 * 7 * 0.4) / 1000;
         const acTons = (habits.acUsage * 365 * 0.5) / 1000;
         const energyTons = electricityTons + acTons;
-        const foodKey = habits.foodHabit || "Non-Vegetarian";
+        const foodKey = habits.foodHabit ||
+            'Non-Vegetarian';
         const foodTons = this.FOOD_ANNUAL_TONS[foodKey] || 2.1;
-        const shoppingKey = habits.shoppingFrequency || "Monthly";
+        const shoppingKey = habits.shoppingFrequency ||
+            'Monthly';
         const shoppingTons = this.SHOPPING_ANNUAL_TONS[shoppingKey] || 0.4;
-        const wasteKey = habits.recyclingHabits || "Sometimes";
+        const wasteKey = habits.recyclingHabits ||
+            'Sometimes';
         const wasteTons = this.WASTE_ANNUAL_TONS[wasteKey] || 0.5;
-        const total = parseFloat((transportTons + energyTons + foodTons + shoppingTons + wasteTons).toFixed(1));
+        const total = parseFloat((transportTons +
+            energyTons +
+            foodTons +
+            shoppingTons +
+            wasteTons).toFixed(1));
         return total;
     }
     async logActivity(userId, activityType, quantity, unit) {
         let emissionsCalculated = 0;
-        if (activityType === "car_trip") {
+        if (activityType === 'car_trip') {
             emissionsCalculated = quantity * 0.18;
         }
-        else if (activityType === "electricity_usage") {
+        else if (activityType === 'electricity_usage') {
             emissionsCalculated = quantity * 0.4;
         }
-        else if (activityType === "meat_meal") {
+        else if (activityType === 'meat_meal') {
             emissionsCalculated = quantity * 2.5;
         }
         else {
@@ -96,7 +103,9 @@ let CarbonService = class CarbonService {
                     emissions: emissionsCalculated,
                 },
             });
-            const leaderboard = await tx.leaderboard.findUnique({ where: { userId } });
+            const leaderboard = await tx.leaderboard.findUnique({
+                where: { userId },
+            });
             if (leaderboard) {
                 await tx.leaderboard.update({
                     where: { userId },
@@ -114,7 +123,7 @@ let CarbonService = class CarbonService {
     async getHistory(userId) {
         return this.prisma.activityLog.findMany({
             where: { userId },
-            orderBy: { date: "desc" },
+            orderBy: { date: 'desc' },
             take: 20,
         });
     }
@@ -122,7 +131,7 @@ let CarbonService = class CarbonService {
         const annualFootprint = await this.calculateAnnualFootprint(userId);
         const monthlyEmissions = Math.round((annualFootprint * 1000) / 12);
         const recentEmissions = await this.prisma.carbonRecord.groupBy({
-            by: ["category"],
+            by: ['category'],
             where: { userId },
             _sum: {
                 emissions: true,
@@ -141,19 +150,19 @@ let CarbonService = class CarbonService {
     }
     mapActivityToCategory(activityType) {
         switch (activityType) {
-            case "car_trip":
-            case "transit_ride":
-            case "flight":
+            case 'car_trip':
+            case 'transit_ride':
+            case 'flight':
                 return client_1.ActivityCategory.TRANSPORTATION;
-            case "electricity_usage":
-            case "ac_run":
-            case "heating_run":
+            case 'electricity_usage':
+            case 'ac_run':
+            case 'heating_run':
                 return client_1.ActivityCategory.ENERGY;
-            case "meat_meal":
-            case "dairy_meal":
+            case 'meat_meal':
+            case 'dairy_meal':
                 return client_1.ActivityCategory.FOOD;
-            case "shopping_delivery":
-            case "purchase_goods":
+            case 'shopping_delivery':
+            case 'purchase_goods':
                 return client_1.ActivityCategory.SHOPPING;
             default:
                 return client_1.ActivityCategory.WASTE;

@@ -37,17 +37,17 @@ let AuthController = class AuthController {
     async refresh(dto) {
         return this.authService.refresh(dto.refreshToken);
     }
-    async logout(req) {
-        return { success: true, message: "Successfully logged out" };
+    logout() {
+        return { success: true, message: 'Successfully logged out' };
     }
 };
 exports.AuthController = AuthController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Register a new user profile" }),
-    (0, swagger_1.ApiResponse)({ status: 201, description: "Successfully registered" }),
-    (0, swagger_1.ApiResponse)({ status: 400, description: "Validation inputs error" }),
-    (0, swagger_1.ApiResponse)({ status: 499, description: "Conflict email registered" }),
-    (0, common_1.Post)("register"),
+    (0, swagger_1.ApiOperation)({ summary: 'Register a new user profile' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Successfully registered' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Validation inputs error' }),
+    (0, swagger_1.ApiResponse)({ status: 499, description: 'Conflict email registered' }),
+    (0, common_1.Post)('register'),
     (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -55,10 +55,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "register", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Login credentials standard email authentication" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Login success, returns access & refresh tokens" }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: "Invalid credentials" }),
-    (0, common_1.Post)("login"),
+    (0, swagger_1.ApiOperation)({ summary: 'Login credentials standard email authentication' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Login success, returns access & refresh tokens',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Invalid credentials' }),
+    (0, common_1.Post)('login'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -66,9 +69,14 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Authenticate / Exchange Google OAuth access credentials" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Google registration/login success" }),
-    (0, common_1.Post)("google"),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Authenticate / Exchange Google OAuth access credentials',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Google registration/login success',
+    }),
+    (0, common_1.Post)('google'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -76,10 +84,13 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "googleLogin", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Refresh JWT Access Token rotation" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Returns new access & refresh tokens" }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: "Invalid refresh token" }),
-    (0, common_1.Post)("refresh"),
+    (0, swagger_1.ApiOperation)({ summary: 'Refresh JWT Access Token rotation' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Returns new access & refresh tokens',
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Invalid refresh token' }),
+    (0, common_1.Post)('refresh'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Body)()),
     __metadata("design:type", Function),
@@ -87,18 +98,17 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "refresh", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Invalidate sessions / Logout" }),
+    (0, swagger_1.ApiOperation)({ summary: 'Invalidate sessions / Logout' }),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Post)("logout"),
+    (0, common_1.Post)('logout'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
-    __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
-    __metadata("design:returntype", Promise)
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
 ], AuthController.prototype, "logout", null);
 exports.AuthController = AuthController = __decorate([
-    (0, swagger_1.ApiTags)("Authentication"),
-    (0, common_1.Controller)("auth"),
+    (0, swagger_1.ApiTags)('Authentication'),
+    (0, common_1.Controller)('auth'),
     __metadata("design:paramtypes", [auth_service_1.AuthService])
 ], AuthController);
 //# sourceMappingURL=auth.controller.js.map

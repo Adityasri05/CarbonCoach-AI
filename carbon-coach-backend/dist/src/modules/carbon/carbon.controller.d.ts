@@ -1,4 +1,4 @@
-import { CarbonService } from "./carbon.service";
+import { CarbonService } from './carbon.service';
 export declare class CarbonController {
     private carbonService;
     constructor(carbonService: CarbonService);

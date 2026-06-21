@@ -27,13 +27,13 @@ let RewardsService = class RewardsService {
             where: { id: rewardId },
         });
         if (!reward) {
-            throw new common_1.NotFoundException("Reward not found");
+            throw new common_1.NotFoundException('Reward not found');
         }
         const leaderboard = await this.prisma.leaderboard.findUnique({
             where: { userId },
         });
         if (!leaderboard || leaderboard.totalPoints < reward.pointsRequired) {
-            throw new common_1.BadRequestException("Insufficient Green Points balance");
+            throw new common_1.BadRequestException('Insufficient Green Points balance');
         }
         return this.prisma.$transaction(async (tx) => {
             await tx.leaderboard.update({
@@ -52,7 +52,7 @@ let RewardsService = class RewardsService {
             await tx.notification.create({
                 data: {
                     userId,
-                    type: "success",
+                    type: 'success',
                     message: `🎁 Redeemed: "${reward.title}"! Deducted ${reward.pointsRequired} pts.`,
                 },
             });

@@ -28,7 +28,7 @@ let UserService = class UserService {
             },
         });
         if (!user) {
-            throw new common_1.NotFoundException("User not found");
+            throw new common_1.NotFoundException('User not found');
         }
         return {
             id: user.id,

@@ -19,7 +19,7 @@ export class TwinService {
       include: { habits: true },
     });
 
-    const currentScore = 6.2; // Baseline default
+    const currentScore = user ? 6.2 : 6.2; // Baseline default
 
     // 2. Perform future simulation math
     const simulatedTransport = ((7 - transportSlider) * 52 * 8) / 1000;

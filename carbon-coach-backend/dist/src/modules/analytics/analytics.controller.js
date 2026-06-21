@@ -26,7 +26,7 @@ let AnalyticsController = class AnalyticsController {
         return this.analyticsService.getDashboardStats(req.user.id);
     }
     async getTrends(req, timeframe) {
-        return this.analyticsService.getTrends(req.user.id, timeframe || "weekly");
+        return this.analyticsService.getTrends(req.user.id, timeframe || 'weekly');
     }
     async getProjections(req) {
         return this.analyticsService.getProjections(req.user.id);
@@ -34,9 +34,12 @@ let AnalyticsController = class AnalyticsController {
 };
 exports.AnalyticsController = AnalyticsController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Get aggregated dashboard statistics" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched dashboard statistics" }),
-    (0, common_1.Get)("dashboard"),
+    (0, swagger_1.ApiOperation)({ summary: 'Get aggregated dashboard statistics' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Successfully fetched dashboard statistics',
+    }),
+    (0, common_1.Get)('dashboard'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -44,20 +47,28 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getDashboard", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Get carbon emissions historical trends" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched trend line data" }),
-    (0, common_1.Get)("trends"),
+    (0, swagger_1.ApiOperation)({ summary: 'Get carbon emissions historical trends' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Successfully fetched trend line data',
+    }),
+    (0, common_1.Get)('trends'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
-    __param(1, (0, common_1.Query)("timeframe")),
+    __param(1, (0, common_1.Query)('timeframe')),
     __metadata("design:type", Function),
     __metadata("design:paramtypes", [Object, String]),
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getTrends", null);
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Fetch projected carbon score trends based on active simulations" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched projected timelines" }),
-    (0, common_1.Get)("projections"),
+    (0, swagger_1.ApiOperation)({
+        summary: 'Fetch projected carbon score trends based on active simulations',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Successfully fetched projected timelines',
+    }),
+    (0, common_1.Get)('projections'),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __param(0, (0, common_1.Req)()),
     __metadata("design:type", Function),
@@ -65,10 +76,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], AnalyticsController.prototype, "getProjections", null);
 exports.AnalyticsController = AnalyticsController = __decorate([
-    (0, swagger_1.ApiTags)("Analytics Engine"),
+    (0, swagger_1.ApiTags)('Analytics Engine'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("analytics"),
+    (0, common_1.Controller)('analytics'),
     __metadata("design:paramtypes", [analytics_service_1.AnalyticsService])
 ], AnalyticsController);
 //# sourceMappingURL=analytics.controller.js.map

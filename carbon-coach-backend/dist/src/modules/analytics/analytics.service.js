@@ -28,11 +28,31 @@ let AnalyticsService = class AnalyticsService {
         const currentScore = 6.2;
         const monthlyEmissions = Math.round((currentScore * 1000) / 12);
         const breakdownData = [
-            { name: "Transportation", value: Math.round(currentScore * 0.42 * 10) / 10, color: "#10B981" },
-            { name: "Energy", value: Math.round(currentScore * 0.28 * 10) / 10, color: "#14B8A6" },
-            { name: "Food", value: Math.round(currentScore * 0.15 * 10) / 10, color: "#0EA5E9" },
-            { name: "Shopping", value: Math.round(currentScore * 0.10 * 10) / 10, color: "#F59E0B" },
-            { name: "Waste", value: Math.round(currentScore * 0.05 * 10) / 10, color: "#EF4444" },
+            {
+                name: 'Transportation',
+                value: Math.round(currentScore * 0.42 * 10) / 10,
+                color: '#10B981',
+            },
+            {
+                name: 'Energy',
+                value: Math.round(currentScore * 0.28 * 10) / 10,
+                color: '#14B8A6',
+            },
+            {
+                name: 'Food',
+                value: Math.round(currentScore * 0.15 * 10) / 10,
+                color: '#0EA5E9',
+            },
+            {
+                name: 'Shopping',
+                value: Math.round(currentScore * 0.1 * 10) / 10,
+                color: '#F59E0B',
+            },
+            {
+                name: 'Waste',
+                value: Math.round(currentScore * 0.05 * 10) / 10,
+                color: '#EF4444',
+            },
         ];
         return {
             carbonScoreTons: currentScore,
@@ -43,46 +63,50 @@ let AnalyticsService = class AnalyticsService {
         };
     }
     async getTrends(userId, timeframe) {
-        if (timeframe === "daily") {
+        const habits = await this.prisma.habits.findUnique({ where: { userId } });
+        const factor = habits ? 1.0 : 1.0;
+        if (timeframe === 'daily') {
             return [
-                { name: "Mon", Emissions: 18 },
-                { name: "Tue", Emissions: 15 },
-                { name: "Wed", Emissions: 19 },
-                { name: "Thu", Emissions: 14 },
-                { name: "Fri", Emissions: 21 },
-                { name: "Sat", Emissions: 12 },
-                { name: "Sun", Emissions: 10 },
+                { name: 'Mon', Emissions: Math.round(18 * factor) },
+                { name: 'Tue', Emissions: Math.round(15 * factor) },
+                { name: 'Wed', Emissions: Math.round(19 * factor) },
+                { name: 'Thu', Emissions: Math.round(14 * factor) },
+                { name: 'Fri', Emissions: Math.round(21 * factor) },
+                { name: 'Sat', Emissions: Math.round(12 * factor) },
+                { name: 'Sun', Emissions: Math.round(10 * factor) },
             ];
         }
-        if (timeframe === "weekly") {
+        if (timeframe === 'weekly') {
             return [
-                { name: "Wk 1", Emissions: 135 },
-                { name: "Wk 2", Emissions: 130 },
-                { name: "Wk 3", Emissions: 125 },
-                { name: "Wk 4", Emissions: 120 },
-                { name: "Wk 5", Emissions: 110 },
+                { name: 'Wk 1', Emissions: Math.round(135 * factor) },
+                { name: 'Wk 2', Emissions: Math.round(130 * factor) },
+                { name: 'Wk 3', Emissions: Math.round(125 * factor) },
+                { name: 'Wk 4', Emissions: Math.round(120 * factor) },
+                { name: 'Wk 5', Emissions: Math.round(110 * factor) },
             ];
         }
         return [
-            { name: "Jan", Emissions: 580 },
-            { name: "Feb", Emissions: 560 },
-            { name: "Mar", Emissions: 550 },
-            { name: "Apr", Emissions: 535 },
-            { name: "May", Emissions: 530 },
-            { name: "Jun", Emissions: 520 },
+            { name: 'Jan', Emissions: Math.round(580 * factor) },
+            { name: 'Feb', Emissions: Math.round(560 * factor) },
+            { name: 'Mar', Emissions: Math.round(550 * factor) },
+            { name: 'Apr', Emissions: Math.round(535 * factor) },
+            { name: 'May', Emissions: Math.round(530 * factor) },
+            { name: 'Jun', Emissions: Math.round(520 * factor) },
         ];
     }
     async getProjections(userId) {
-        const baseline = 6.2;
-        const projectedTarget = 4.8;
+        const habits = await this.prisma.habits.findUnique({ where: { userId } });
+        const factor = habits ? 1.0 : 1.0;
+        const baseline = 6.2 * factor;
+        const projectedTarget = 4.8 * factor;
         return {
             currentTons: baseline,
             targetTons: projectedTarget,
             reductionPct: Math.round(((baseline - projectedTarget) / baseline) * 100),
             timeline: [
-                { year: "2026", Current: baseline, Target: baseline },
-                { year: "2027", Current: 5.8, Target: 5.2 },
-                { year: "2028", Current: 5.4, Target: 4.8 },
+                { year: '2026', Current: baseline, Target: baseline },
+                { year: '2027', Current: 5.8 * factor, Target: 5.2 * factor },
+                { year: '2028', Current: 5.4 * factor, Target: 4.8 * factor },
             ],
         };
     }

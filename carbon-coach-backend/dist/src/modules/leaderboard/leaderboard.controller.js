@@ -25,8 +25,11 @@ let LeaderboardController = class LeaderboardController {
 };
 exports.LeaderboardController = LeaderboardController;
 __decorate([
-    (0, swagger_1.ApiOperation)({ summary: "Retrieve global carbon reduction standings" }),
-    (0, swagger_1.ApiResponse)({ status: 200, description: "Successfully fetched leaderboard standings" }),
+    (0, swagger_1.ApiOperation)({ summary: 'Retrieve global carbon reduction standings' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Successfully fetched leaderboard standings',
+    }),
     (0, common_1.Get)(),
     (0, common_1.HttpCode)(common_1.HttpStatus.OK),
     __metadata("design:type", Function),
@@ -34,10 +37,10 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], LeaderboardController.prototype, "getLeaderboard", null);
 exports.LeaderboardController = LeaderboardController = __decorate([
-    (0, swagger_1.ApiTags)("Community Leaderboard"),
+    (0, swagger_1.ApiTags)('Community Leaderboard'),
     (0, swagger_1.ApiBearerAuth)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, common_1.Controller)("leaderboard"),
+    (0, common_1.Controller)('leaderboard'),
     __metadata("design:paramtypes", [leaderboard_service_1.LeaderboardService])
 ], LeaderboardController);
 //# sourceMappingURL=leaderboard.controller.js.map

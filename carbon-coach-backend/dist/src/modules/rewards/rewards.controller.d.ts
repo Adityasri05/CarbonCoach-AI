@@ -1,4 +1,4 @@
-import { RewardsService } from "./rewards.service";
+import { RewardsService } from './rewards.service';
 export declare class RewardsController {
     private rewardsService;
     constructor(rewardsService: RewardsService);

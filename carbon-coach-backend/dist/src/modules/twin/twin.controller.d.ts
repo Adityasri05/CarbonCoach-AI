@@ -1,4 +1,4 @@
-import { TwinService } from "./twin.service";
+import { TwinService } from './twin.service';
 export declare class TwinController {
     private twinService;
     constructor(twinService: TwinService);
