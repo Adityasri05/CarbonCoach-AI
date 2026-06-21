@@ -136,6 +136,42 @@ describe('TwinService', () => {
       expect(result.savingPercentage).toBe(56);
       expect(result.co2SavedTons).toBe(3.5);
     });
+
+    it('should simulate with Vegetarian food option', async () => {
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+      jest
+        .spyOn(prisma.carbonTwinSimulation, 'create')
+        .mockImplementation((args: any) => Promise.resolve(args.data));
+
+      const result = await service.simulate(
+        'u1',
+        'Vegetarian Scenario',
+        7,
+        20,
+        'Vegetarian',
+        0,
+      );
+
+      expect(result).toBeDefined();
+    });
+
+    it('should simulate with Eggetarian food option', async () => {
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(null);
+      jest
+        .spyOn(prisma.carbonTwinSimulation, 'create')
+        .mockImplementation((args: any) => Promise.resolve(args.data));
+
+      const result = await service.simulate(
+        'u1',
+        'Eggetarian Scenario',
+        7,
+        20,
+        'Eggetarian',
+        0,
+      );
+
+      expect(result).toBeDefined();
+    });
   });
 
   describe('getHistory', () => {

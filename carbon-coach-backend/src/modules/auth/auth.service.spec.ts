@@ -131,6 +131,19 @@ describe('AuthService', () => {
 
       await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
     });
+
+    it('should throw UnauthorizedException when password comparison fails', async () => {
+      const dto = { email: 'user@example.com', password: 'wrong-password' };
+      const mockUser = {
+        id: 'user-123',
+        email: 'user@example.com',
+        passwordHash: 'hashed-pwd',
+      };
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(false as any);
+
+      await expect(service.login(dto)).rejects.toThrow(UnauthorizedException);
+    });
   });
 
   describe('googleLogin', () => {

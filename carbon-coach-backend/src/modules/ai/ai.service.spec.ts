@@ -80,8 +80,23 @@ describe('AIService', () => {
     expect(recs[0].text).toContain('public transport');
   });
 
-  it('should process user queries and generate bot response', async () => {
-    jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue(null);
+  it('should process user queries and generate bot response with habits and chat history', async () => {
+    const mockHabits = {
+      userId: 'user-123',
+      vehicleType: 'Gasoline',
+      travelDistance: 20,
+      acUsage: 4,
+      foodHabit: 'Non-Vegetarian',
+      recyclingHabits: 'Sometimes',
+      electricityBill: 100,
+      shoppingFrequency: 'Monthly',
+    };
+    const mockHistory = [
+      { id: 'h1', sender: 'USER', text: 'hello' },
+      { id: 'h2', sender: 'BOT', text: 'hi' },
+    ];
+    jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue(mockHabits as any);
+    jest.spyOn(prisma.chatHistory, 'findMany').mockResolvedValue(mockHistory as any);
     jest
       .spyOn(prisma.chatHistory, 'create')
       .mockImplementation((data) => data as any);
@@ -90,8 +105,23 @@ describe('AIService', () => {
       'user-123',
       'How can I reduce emissions?',
     );
-    expect(result.reply).toBeDefined();
+    expect(result.reply).toBe('Mocked Gemini chatbot response');
     expect(prisma.chatHistory.create).toHaveBeenCalledTimes(2);
+  });
+
+  it('should fall back to default message if Gemini returns empty text', async () => {
+    jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue(null);
+    jest.spyOn(prisma.chatHistory, 'findMany').mockResolvedValue([]);
+    jest
+      .spyOn(prisma.chatHistory, 'create')
+      .mockImplementation((data) => data as any);
+    mockGenerateContent.mockResolvedValue({ text: '' });
+
+    const result = await service.chatbotResponse(
+      'user-123',
+      'How can I reduce emissions?',
+    );
+    expect(result.reply).toContain("I'm sorry, I couldn't generate a response");
   });
 
   describe('chatbot fallback', () => {
@@ -166,6 +196,69 @@ describe('AIService', () => {
         orderBy: { timestamp: 'asc' },
         take: 50,
       });
+    });
+  });
+
+  describe('additional branch coverage', () => {
+    it('should handle alternate/negative recommendation branches', async () => {
+      const mockHabits = {
+        userId: 'user-123',
+        vehicleType: 'Electric',
+        travelDistance: 10,
+        acUsage: 1,
+        foodHabit: 'Vegan',
+        recyclingHabits: 'Always',
+      };
+
+      jest
+        .spyOn(prisma.habits, 'findUnique')
+        .mockResolvedValue(mockHabits as any);
+
+      const recs = await service.generateRecommendations('user-123');
+      expect(recs.length).toBe(0);
+    });
+
+    it('should handle Diesel vehicleType recommendation branch', async () => {
+      const mockHabits = {
+        userId: 'user-123',
+        vehicleType: 'Diesel',
+        travelDistance: 10,
+        acUsage: 1,
+        foodHabit: 'Vegan',
+        recyclingHabits: 'Always',
+      };
+
+      jest
+        .spyOn(prisma.habits, 'findUnique')
+        .mockResolvedValue(mockHabits as any);
+
+      const recs = await service.generateRecommendations('user-123');
+      expect(recs.length).toBe(1);
+      expect(recs[0].text).toContain('public transport');
+    });
+
+    it('should fallback to defaults in chatbotResponse systemInstruction when habits fields are missing', async () => {
+      const mockHabitsEmpty = {
+        userId: 'user-123',
+        vehicleType: '',
+        travelDistance: 0,
+        electricityBill: 0,
+        acUsage: 0,
+        foodHabit: '',
+        shoppingFrequency: '',
+        recyclingHabits: '',
+      };
+      jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue(mockHabitsEmpty as any);
+      jest.spyOn(prisma.chatHistory, 'findMany').mockResolvedValue([]);
+      jest
+        .spyOn(prisma.chatHistory, 'create')
+        .mockImplementation((data) => data as any);
+
+      const result = await service.chatbotResponse(
+        'user-123',
+        'Hello',
+      );
+      expect(result.reply).toBe('Mocked Gemini chatbot response');
     });
   });
 });

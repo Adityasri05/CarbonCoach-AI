@@ -92,6 +92,13 @@ describe('AnalyticsService', () => {
       expect(result).toHaveLength(6);
       expect(result[0]).toEqual({ name: 'Jan', Emissions: 580 });
     });
+
+    it('should return trends when habits exist', async () => {
+      jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue({ id: 'h1' } as any);
+      const result = await service.getTrends('u1', 'daily');
+      expect(result).toHaveLength(7);
+      expect(result[0]).toEqual({ name: 'Mon', Emissions: 18 });
+    });
   });
 
   describe('getProjections', () => {
@@ -107,6 +114,12 @@ describe('AnalyticsService', () => {
           { year: '2028', Current: 5.4, Target: 4.8 },
         ],
       });
+    });
+
+    it('should return projections when habits exist', async () => {
+      jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue({ id: 'h1' } as any);
+      const result = await service.getProjections('u1');
+      expect(result.currentTons).toBe(6.2);
     });
   });
 });

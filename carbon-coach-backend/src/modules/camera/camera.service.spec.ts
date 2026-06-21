@@ -144,4 +144,110 @@ describe('CameraService', () => {
       });
     });
   });
+
+  describe('Vision API failure and different image formats', () => {
+    it('should handle non-data imageUrl format with Vision API enabled', async () => {
+      process.env.VISION_API_KEY = 'test-api-key';
+
+      const result = await service.analyzeImage(
+        'user-123',
+        'appliance',
+        'https://example.com/test.jpg',
+      );
+
+      expect(result.scan.detectedItem).toBe('Mocked Item');
+      expect(global.fetch).toHaveBeenCalled();
+    });
+
+    it('should handle data url without comma format', async () => {
+      process.env.VISION_API_KEY = 'test-api-key';
+
+      const result = await service.analyzeImage(
+        'user-123',
+        'appliance',
+        'data:image/png;base64mocked',
+      );
+
+      expect(result.scan.detectedItem).toBe('Mocked Item');
+    });
+
+    it('should fallback when Vision API returns not ok', async () => {
+      process.env.VISION_API_KEY = 'test-api-key';
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: false,
+        statusText: 'Internal Server Error',
+      });
+
+      const result = await service.analyzeImage(
+        'user-123',
+        'meal',
+        'https://example.com/test.jpg',
+      );
+
+      // Falls back to meal preset
+      expect(result.scan.detectedItem).toBe('Beef Burger & Fries');
+    });
+
+    it('should default alternative and alternativeEmission when missing from Gemini parsed output', async () => {
+      process.env.VISION_API_KEY = 'test-api-key';
+      mockGenerateContent.mockResolvedValue({
+        text: JSON.stringify({
+          detectedItem: 'Mocked Item',
+          emission: 1.5,
+        }),
+      });
+
+      const result = await service.analyzeImage(
+        'user-123',
+        'appliance',
+        'https://example.com/test.jpg',
+      );
+
+      expect(result.scan.detectedItem).toBe('Mocked Item');
+      expect(result.scan.alternative).toBe('Green alternative');
+      expect(result.scan.alternativeEmission).toBe(0.5);
+    });
+
+    it('should fallback to presets if Vision returns empty responses', async () => {
+      process.env.VISION_API_KEY = 'test-api-key';
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await service.analyzeImage(
+        'user-123',
+        'vehicle',
+        'https://example.com/test.jpg',
+      );
+
+      expect(result.scan.detectedItem).toBe('Mid-size Gasoline SUV');
+    });
+
+    it('should fallback to presets if Gemini returns invalid json', async () => {
+      process.env.VISION_API_KEY = 'test-api-key';
+      mockGenerateContent.mockResolvedValue({
+        text: 'invalid-json',
+      });
+
+      const result = await service.analyzeImage(
+        'user-123',
+        'appliance',
+        'https://example.com/test.jpg',
+      );
+
+      expect(result.scan.detectedItem).toBe('Standard Electric Clothes Dryer');
+    });
+
+    it('should keep default presets if category is unknown during fallback', async () => {
+      const result = await service.analyzeImage(
+        'user-123',
+        'unknown-category',
+        'https://example.com/test.jpg',
+      );
+
+      expect(result.scan.detectedItem).toBe('Unknown Object');
+      expect(result.scan.emission).toBe(2.0);
+    });
+  });
 });

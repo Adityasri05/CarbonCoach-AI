@@ -196,4 +196,103 @@ describe('CarbonService', () => {
       });
     });
   });
+
+  describe('activity type mappings and additional log types', () => {
+    it('should calculate correct emissions and map categories for electricity_usage', async () => {
+      jest.spyOn(prisma.activityLog, 'create').mockResolvedValue({} as any);
+      jest.spyOn(prisma.leaderboard, 'findUnique').mockResolvedValue(null);
+
+      await service.logActivity('user-123', 'electricity_usage', 50, 'kWh');
+
+      expect(prisma.activityLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            activityType: 'electricity_usage',
+            emissionsCalculated: 20, // 50 * 0.4 = 20
+          }),
+        }),
+      );
+      expect(prisma.carbonRecord.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            category: ActivityCategory.ENERGY,
+          }),
+        }),
+      );
+    });
+
+    it('should calculate correct emissions and map categories for meat_meal', async () => {
+      jest.spyOn(prisma.activityLog, 'create').mockResolvedValue({} as any);
+      jest.spyOn(prisma.leaderboard, 'findUnique').mockResolvedValue(null);
+
+      await service.logActivity('user-123', 'meat_meal', 2, 'meals');
+
+      expect(prisma.activityLog.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            activityType: 'meat_meal',
+            emissionsCalculated: 5, // 2 * 2.5 = 5
+          }),
+        }),
+      );
+      expect(prisma.carbonRecord.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            category: ActivityCategory.FOOD,
+          }),
+        }),
+      );
+    });
+
+    it('should map shopping_delivery activity to SHOPPING category', async () => {
+      jest.spyOn(prisma.activityLog, 'create').mockResolvedValue({} as any);
+      jest.spyOn(prisma.leaderboard, 'findUnique').mockResolvedValue(null);
+
+      await service.logActivity('user-123', 'shopping_delivery', 1, 'delivery');
+
+      expect(prisma.carbonRecord.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            category: ActivityCategory.SHOPPING,
+          }),
+        }),
+      );
+    });
+
+    it('should fallback to default factors in calculateAnnualFootprint when habits have invalid values', async () => {
+      const mockHabitsInvalid = {
+        userId: 'user-123',
+        travelDistance: 50,
+        vehicleType: 'InvalidVehicleType',
+        fuelType: 'Petrol',
+        electricityBill: 100,
+        acUsage: 2,
+        appliances: [],
+        foodHabit: 'InvalidFoodHabit',
+        shoppingFrequency: 'InvalidShoppingFreq',
+        recyclingHabits: 'InvalidRecyclingHabit',
+      };
+
+      jest
+        .spyOn(prisma.habits, 'findUnique')
+        .mockResolvedValue(mockHabitsInvalid as any);
+
+      const footprint = await service.calculateAnnualFootprint('user-123');
+      expect(footprint).toBe(10.0);
+    });
+
+    it('should handle getSummary when emissions sum is null', async () => {
+      const userId = 'user-123';
+      jest.spyOn(prisma.habits, 'findUnique').mockResolvedValue(null);
+      jest.spyOn(prisma.carbonRecord, 'groupBy').mockResolvedValue([
+        {
+          category: ActivityCategory.TRANSPORTATION,
+          _sum: { emissions: null },
+        },
+      ] as any);
+
+      const result = await service.getSummary(userId);
+      expect(result.categoryBreakdown[0].totalEmissions).toBe(0);
+    });
+  });
 });
