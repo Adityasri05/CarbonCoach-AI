@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
-import { MessageSquare, X, Send, Bot, User, Sparkles, CornerDownLeft } from "lucide-react";
+import { MessageSquare, X, Send, Bot, User, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function AIChatbot() {
@@ -29,27 +29,32 @@ export default function AIChatbot() {
     }
   }, [chatHistory, isOpen, isTyping]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputValue.trim()) return;
     
     const text = inputValue;
     setInputValue("");
     setIsTyping(true);
-    sendChatMessage(text);
     
-    setTimeout(() => {
+    try {
+      await sendChatMessage(text);
+    } catch (err) {
+      console.warn("Chat message error:", err);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
-  const handleSuggestionClick = (prompt: string) => {
+  const handleSuggestionClick = async (prompt: string) => {
     setIsTyping(true);
-    sendChatMessage(prompt);
-    
-    setTimeout(() => {
+    try {
+      await sendChatMessage(prompt);
+    } catch (err) {
+      console.warn("Suggestion click error:", err);
+    } finally {
       setIsTyping(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -62,6 +67,8 @@ export default function AIChatbot() {
             exit={{ opacity: 0, y: 50, scale: 0.9 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
             className="glass-panel w-[calc(100vw-2rem)] sm:w-[380px] h-[min(70vh,480px)] rounded-2xl flex flex-col shadow-2xl overflow-hidden border border-slate-700/50 mb-3"
+            role="dialog"
+            aria-label="CarbonCoach AI Chat Assistant"
           >
             {/* Header */}
             <div className="p-3.5 bg-slate-800/80 border-b border-slate-700/50 flex justify-between items-center shrink-0">
@@ -86,7 +93,7 @@ export default function AIChatbot() {
             </div>
 
             {/* Chat Messages */}
-            <div className="flex-1 overflow-y-auto p-3.5 space-y-3">
+            <div className="flex-1 overflow-y-auto p-3.5 space-y-3" role="log" aria-live="polite" aria-label="Chat messages">
               {chatHistory.map((msg) => (
                 <div
                   key={msg.id}

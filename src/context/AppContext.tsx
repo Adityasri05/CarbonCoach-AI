@@ -1,13 +1,30 @@
 "use client";
 
-import React, { createContext, useContext, useState } from "react";
+import React, { createContext, useContext, useState, useCallback } from "react";
+import {
+  auth,
+  db,
+  googleProvider,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  onAuthStateChanged,
+  updateProfile,
+  doc,
+  setDoc,
+  getDoc,
+  type User as FirebaseUser,
+} from "@/lib/firebase";
 
 export interface UserProfile {
   name: string;
+  email: string;
   age: string;
   country: string;
   occupation: string;
   onboarded: boolean;
+  uid: string;
 }
 
 export interface Habits {
@@ -53,13 +70,16 @@ export interface ChatMessage {
 
 export interface NotificationMsg {
   id: string;
-  type: "success" | "info" | "achievement" | "streak";
+  type: "success" | "info" | "achievement" | "streak" | "error";
   message: string;
   timestamp: Date;
 }
 
 interface AppContextType {
   user: UserProfile;
+  firebaseUser: FirebaseUser | null;
+  isAuthenticated: boolean;
+  isAuthLoading: boolean;
   habits: Habits;
   carbonScore: number; // Tons CO2 / year
   monthlyEmissions: number; // kg CO2
@@ -84,22 +104,25 @@ interface AppContextType {
     imageUrl: string;
     timestamp: Date;
   }>;
-  
-  // Actions
-  login: (name: string, email: string) => void;
-  signUp: (name: string, email: string) => void;
+
+  // Auth Actions
+  loginWithEmail: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  signUpWithEmail: (name: string, email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+  loginWithGoogle: () => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
+
+  // App Actions
   completeOnboarding: (profile: Partial<UserProfile>, habits: Partial<Habits>) => void;
   updateHabits: (habits: Partial<Habits>) => void;
   joinChallenge: (challengeId: string) => void;
   updateChallengeProgress: (challengeId: string, days: number) => void;
   redeemReward: (rewardId: string) => boolean;
-  sendChatMessage: (text: string) => void;
+  sendChatMessage: (text: string) => Promise<void>;
   triggerCameraScan: (category: string, imageUrl: string) => void;
   addXPPoints: (amount: number) => void;
-  addNotification: (type: "success" | "info" | "achievement" | "streak", message: string) => void;
+  addNotification: (type: "success" | "info" | "achievement" | "streak" | "error", message: string) => void;
   clearNotification: (id: string) => void;
   setActiveTab: (tab: string) => void;
-  logout: () => void;
 }
 
 const defaultHabits: Habits = {
@@ -112,6 +135,16 @@ const defaultHabits: Habits = {
   foodHabit: "Non-Vegetarian",
   shoppingFrequency: "Monthly",
   recyclingHabits: "Sometimes",
+};
+
+const defaultUser: UserProfile = {
+  name: "",
+  email: "",
+  age: "",
+  country: "United States",
+  occupation: "",
+  onboarded: false,
+  uid: "",
 };
 
 const initialChallenges: Challenge[] = [
@@ -202,34 +235,61 @@ const initialRewards: RewardItem[] = [
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserProfile>({
-    name: "Alex Rivera",
-    age: "26",
-    country: "United States",
-    occupation: "Software Designer",
-    onboarded: true, // Default to true so they see dashboard right away, can go through onboarding flow too
-  });
+/**
+ * Sanitize user input to prevent XSS attacks in chat messages.
+ */
+function sanitizeInput(text: string): string {
+  return text
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#x27;")
+    .trim()
+    .slice(0, 2000); // Cap message length
+}
 
+/**
+ * Map Firebase auth error codes to user-friendly messages.
+ */
+function getAuthErrorMessage(code: string): string {
+  const errorMap: Record<string, string> = {
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/user-disabled": "This account has been disabled.",
+    "auth/user-not-found": "No account found with this email. Please sign up.",
+    "auth/wrong-password": "Incorrect password. Please try again.",
+    "auth/email-already-in-use": "An account with this email already exists.",
+    "auth/weak-password": "Password must be at least 6 characters.",
+    "auth/too-many-requests": "Too many failed attempts. Please try again later.",
+    "auth/popup-closed-by-user": "Sign-in popup was closed. Please try again.",
+    "auth/network-request-failed": "Network error. Check your connection.",
+    "auth/invalid-credential": "Invalid credentials. Please check your email and password.",
+  };
+  return errorMap[code] || "Authentication failed. Please try again.";
+}
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const [user, setUser] = useState<UserProfile>(defaultUser);
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
   const [habits, setHabits] = useState<Habits>(defaultHabits);
-  
-  // Recalculate carbon score dynamically based on user habits using useMemo
+
+  // Recalculate carbon score dynamically based on user habits
   const { carbonScore, monthlyEmissions } = React.useMemo(() => {
-    // Basic approximate carbon footprint formula for illustrative UX purposes
     let transportScore = 0;
     if (habits.vehicleType === "Gasoline") transportScore = (habits.travelDistance * 365 * 0.18) / 1000;
     else if (habits.vehicleType === "Diesel") transportScore = (habits.travelDistance * 365 * 0.20) / 1000;
     else if (habits.vehicleType === "Hybrid") transportScore = (habits.travelDistance * 365 * 0.09) / 1000;
     else if (habits.vehicleType === "Electric") transportScore = (habits.travelDistance * 365 * 0.04) / 1000;
-    else transportScore = (habits.travelDistance * 365 * 0.02) / 1000; // Public transport/walking
+    else transportScore = (habits.travelDistance * 365 * 0.02) / 1000;
 
     const energyScore = (habits.electricityBill * 12 * 0.4) / 100 + (habits.acUsage * 365 * 0.5) / 1000;
-    
-    let foodScore = 1.5; // Average baseline
+
+    let foodScore = 1.5;
     if (habits.foodHabit === "Vegan") foodScore = 0.6;
     else if (habits.foodHabit === "Vegetarian") foodScore = 0.9;
     else if (habits.foodHabit === "Eggetarian") foodScore = 1.1;
-    else foodScore = 2.1; // Non-veg meat heavy
+    else foodScore = 2.1;
 
     let wasteScore = 0.8;
     if (habits.recyclingHabits === "Always") wasteScore = 0.3;
@@ -247,7 +307,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [habits]);
 
-  const [reductionGoal, setReductionGoal] = useState<number>(72); // Completed
+  const [reductionGoal] = useState<number>(72);
   const [greenPoints, setGreenPoints] = useState<number>(1250);
   const [xp, setXp] = useState<number>(750);
   const [level, setLevel] = useState<number>(3);
@@ -261,130 +321,216 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     {
       id: "init",
       sender: "bot",
-      text: "Hello! I am your AI Carbon Coach. You can ask me anything about climate change, reducing emissions, or tracking your daily carbon footprint!",
+      text: "Hello! I am your AI Carbon Coach powered by Google Gemini. You can ask me anything about climate change, reducing emissions, or tracking your daily carbon footprint!",
       timestamp: new Date(),
     },
   ]);
 
-  // Load state from localStorage on mount
+  // ──────────────────────────────────────────────
+  // Firebase Auth State Listener
+  // ──────────────────────────────────────────────
   React.useEffect(() => {
-    if (typeof window !== "undefined") {
-      const u = localStorage.getItem("carbon_user");
-      if (u) {
-        try { setUser(JSON.parse(u)); } catch (e) {}
-      }
-      const h = localStorage.getItem("carbon_habits");
-      if (h) {
-        try { setHabits(JSON.parse(h)); } catch (e) {}
-      }
-      const g = localStorage.getItem("carbon_points");
-      if (g) {
-        setGreenPoints(parseInt(g) || 0);
-      }
-      const x = localStorage.getItem("carbon_xp");
-      if (x) {
-        setXp(parseInt(x) || 0);
-      }
-      const l = localStorage.getItem("carbon_level");
-      if (l) {
-        setLevel(parseInt(l) || 1);
-      }
-      const s = localStorage.getItem("carbon_streak");
-      if (s) {
-        setStreak(parseInt(s) || 0);
-      }
-      const c = localStorage.getItem("carbon_challenges");
-      if (c) {
-        try { setChallenges(JSON.parse(c)); } catch (e) {}
-      }
-      const sc = localStorage.getItem("carbon_scans");
-      if (sc) {
-        try { setCameraScans(JSON.parse(sc)); } catch (e) {}
-      }
-      const ch = localStorage.getItem("carbon_chat");
-      if (ch) {
+    const unsubscribe = onAuthStateChanged(auth, async (fbUser) => {
+      if (fbUser) {
+        setFirebaseUser(fbUser);
+        setIsAuthenticated(true);
+
+        // Try to load user profile from Firestore
         try {
-          const parsed = JSON.parse(ch);
-          const formatted = parsed.map((m: any) => ({
-            ...m,
-            timestamp: new Date(m.timestamp)
-          }));
-          setChatHistory(formatted);
-        } catch (e) {}
+          const userDocRef = doc(db, "users", fbUser.uid);
+          const userDoc = await getDoc(userDocRef);
+
+          if (userDoc.exists()) {
+            const data = userDoc.data();
+            setUser({
+              name: data.name || fbUser.displayName || "User",
+              email: data.email || fbUser.email || "",
+              age: data.age || "",
+              country: data.country || "United States",
+              occupation: data.occupation || "",
+              onboarded: data.onboarded ?? false,
+              uid: fbUser.uid,
+            });
+            if (data.habits) {
+              setHabits(prev => ({ ...prev, ...data.habits }));
+            }
+            if (data.greenPoints !== undefined) setGreenPoints(data.greenPoints);
+            if (data.xp !== undefined) setXp(data.xp);
+            if (data.level !== undefined) setLevel(data.level);
+            if (data.streak !== undefined) setStreak(data.streak);
+          } else {
+            // New user — set basic profile
+            setUser({
+              name: fbUser.displayName || fbUser.email?.split("@")[0] || "User",
+              email: fbUser.email || "",
+              age: "",
+              country: "United States",
+              occupation: "",
+              onboarded: false,
+              uid: fbUser.uid,
+            });
+          }
+        } catch (err) {
+          console.warn("[AppContext] Failed to load Firestore profile, using defaults:", err);
+          setUser({
+            name: fbUser.displayName || fbUser.email?.split("@")[0] || "User",
+            email: fbUser.email || "",
+            age: "",
+            country: "United States",
+            occupation: "",
+            onboarded: false,
+            uid: fbUser.uid,
+          });
+        }
+      } else {
+        setFirebaseUser(null);
+        setIsAuthenticated(false);
+        setUser(defaultUser);
       }
-    }
+      setIsAuthLoading(false);
+    });
+
+    return () => unsubscribe();
   }, []);
 
-  // Save states to localStorage when they change
+  // ──────────────────────────────────────────────
+  // Persist to Firestore on key state changes
+  // ──────────────────────────────────────────────
+  const saveToFirestore = useCallback(async (data: Record<string, unknown>) => {
+    if (!firebaseUser) return;
+    try {
+      const userDocRef = doc(db, "users", firebaseUser.uid);
+      await setDoc(userDocRef, data, { merge: true });
+    } catch (err) {
+      console.warn("[AppContext] Firestore save failed:", err);
+    }
+  }, [firebaseUser]);
+
+  // Also persist to localStorage as offline fallback
   React.useEffect(() => {
-    if (typeof window !== "undefined" && user) {
+    if (typeof window !== "undefined" && user.uid) {
       localStorage.setItem("carbon_user", JSON.stringify(user));
-    }
-  }, [user]);
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && habits) {
       localStorage.setItem("carbon_habits", JSON.stringify(habits));
-    }
-  }, [habits]);
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
       localStorage.setItem("carbon_points", greenPoints.toString());
-    }
-  }, [greenPoints]);
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
       localStorage.setItem("carbon_xp", xp.toString());
-    }
-  }, [xp]);
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
       localStorage.setItem("carbon_level", level.toString());
-    }
-  }, [level]);
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined") {
       localStorage.setItem("carbon_streak", streak.toString());
     }
-  }, [streak]);
+  }, [user, habits, greenPoints, xp, level, streak]);
 
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && challenges) {
-      localStorage.setItem("carbon_challenges", JSON.stringify(challenges));
-    }
-  }, [challenges]);
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && cameraScans) {
-      localStorage.setItem("carbon_scans", JSON.stringify(cameraScans));
-    }
-  }, [cameraScans]);
-
-  React.useEffect(() => {
-    if (typeof window !== "undefined" && chatHistory) {
-      localStorage.setItem("carbon_chat", JSON.stringify(chatHistory));
-    }
-  }, [chatHistory]);
-
-  const addNotification = (type: "success" | "info" | "achievement" | "streak", message: string) => {
+  // ──────────────────────────────────────────────
+  // Notification system
+  // ──────────────────────────────────────────────
+  const addNotification = useCallback((type: "success" | "info" | "achievement" | "streak" | "error", message: string) => {
     const newNotif: NotificationMsg = {
-      id: Math.random().toString(),
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36),
       type,
       message,
       timestamp: new Date(),
     };
     setNotifications((prev) => [newNotif, ...prev.slice(0, 4)]);
-  };
+  }, []);
 
-  const clearNotification = (id: string) => {
+  const clearNotification = useCallback((id: string) => {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
+  }, []);
 
-  const addXPPoints = (amount: number) => {
+  // ──────────────────────────────────────────────
+  // Auth: Email Login
+  // ──────────────────────────────────────────────
+  const loginWithEmail = useCallback(async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      addNotification("success", "Login successful! Welcome back.");
+      return { success: true };
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || "";
+      const message = getAuthErrorMessage(code);
+      addNotification("error", message);
+      return { success: false, error: message };
+    }
+  }, [addNotification]);
+
+  // ──────────────────────────────────────────────
+  // Auth: Email Sign Up
+  // ──────────────────────────────────────────────
+  const signUpWithEmail = useCallback(async (name: string, email: string, password: string): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, email, password);
+
+      // Set display name
+      await updateProfile(cred.user, { displayName: name });
+
+      // Create Firestore user document
+      const userDocRef = doc(db, "users", cred.user.uid);
+      await setDoc(userDocRef, {
+        name,
+        email,
+        age: "",
+        country: "United States",
+        occupation: "",
+        onboarded: false,
+        greenPoints: 0,
+        xp: 0,
+        level: 1,
+        streak: 0,
+        createdAt: new Date().toISOString(),
+      });
+
+      addNotification("success", "Account created! Let's set up your profile.");
+      return { success: true };
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || "";
+      const message = getAuthErrorMessage(code);
+      addNotification("error", message);
+      return { success: false, error: message };
+    }
+  }, [addNotification]);
+
+  // ──────────────────────────────────────────────
+  // Auth: Google Sign-In
+  // ──────────────────────────────────────────────
+  const loginWithGoogle = useCallback(async (): Promise<{ success: boolean; error?: string }> => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const fbUser = result.user;
+
+      // Check if user exists in Firestore, if not create entry
+      const userDocRef = doc(db, "users", fbUser.uid);
+      const userDoc = await getDoc(userDocRef);
+
+      if (!userDoc.exists()) {
+        await setDoc(userDocRef, {
+          name: fbUser.displayName || "Google User",
+          email: fbUser.email || "",
+          age: "",
+          country: "United States",
+          occupation: "",
+          onboarded: false,
+          greenPoints: 0,
+          xp: 0,
+          level: 1,
+          streak: 0,
+          createdAt: new Date().toISOString(),
+        });
+      }
+
+      addNotification("success", "Google authentication successful!");
+      return { success: true };
+    } catch (err: unknown) {
+      const code = (err as { code?: string })?.code || "";
+      const message = getAuthErrorMessage(code);
+      if (code !== "auth/popup-closed-by-user") {
+        addNotification("error", message);
+      }
+      return { success: false, error: message };
+    }
+  }, [addNotification]);
+
+  // ──────────────────────────────────────────────
+  // XP and leveling
+  // ──────────────────────────────────────────────
+  const addXPPoints = useCallback((amount: number) => {
     setXp((prevXp) => {
       const newXp = prevXp + amount;
       if (newXp >= 1000) {
@@ -399,48 +545,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
       return newXp;
     });
-  };
+  }, [addNotification]);
 
-  const login = (name: string, email: string) => {
-    setUser({
-      name: name || "Alex Rivera",
-      age: "26",
-      country: "United States",
-      occupation: "Software Designer",
-      onboarded: true,
-    });
-    setGreenPoints(1250);
-    setXp(750);
-    setLevel(3);
-    setStreak(5);
-  };
-
-  const signUp = (name: string, email: string) => {
-    setUser({
-      name: name || "New User",
-      age: "",
-      country: "United States",
-      occupation: "",
-      onboarded: false,
-    });
-    setGreenPoints(0);
-    setXp(0);
-    setLevel(1);
-    setStreak(0);
-  };
-
-  const completeOnboarding = (profile: Partial<UserProfile>, userHabits: Partial<Habits>) => {
+  // ──────────────────────────────────────────────
+  // Onboarding
+  // ──────────────────────────────────────────────
+  const completeOnboarding = useCallback((profile: Partial<UserProfile>, userHabits: Partial<Habits>) => {
     setUser((prev) => ({ ...prev, ...profile, onboarded: true }));
     setHabits((prev) => ({ ...prev, ...userHabits }));
     addNotification("success", "Welcome to CarbonCoach AI! Onboarding complete.");
     addXPPoints(150);
-  };
 
-  const updateHabits = (newHabits: Partial<Habits>) => {
-    setHabits((prev) => ({ ...prev, ...newHabits }));
-  };
+    // Save onboarding data to Firestore
+    saveToFirestore({
+      ...profile,
+      onboarded: true,
+      habits: { ...defaultHabits, ...userHabits },
+    });
+  }, [addNotification, addXPPoints, saveToFirestore]);
 
-  const joinChallenge = (challengeId: string) => {
+  const updateHabits = useCallback((newHabits: Partial<Habits>) => {
+    setHabits((prev) => {
+      const updated = { ...prev, ...newHabits };
+      saveToFirestore({ habits: updated });
+      return updated;
+    });
+  }, [saveToFirestore]);
+
+  // ──────────────────────────────────────────────
+  // Challenges
+  // ──────────────────────────────────────────────
+  const joinChallenge = useCallback((challengeId: string) => {
     setChallenges((prev) =>
       prev.map((ch) => {
         if (ch.id === challengeId) {
@@ -450,41 +585,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return ch;
       })
     );
-  };
+  }, [addNotification]);
 
-  const updateChallengeProgress = (challengeId: string, days: number) => {
+  const updateChallengeProgress = useCallback((challengeId: string, days: number) => {
     setChallenges((prev) =>
       prev.map((ch) => {
         if (ch.id === challengeId && ch.status === "joined") {
           const completed = Math.min(ch.daysTotal, ch.daysCompleted + days);
           const pct = Math.round((completed / ch.daysTotal) * 100);
           const isFinished = completed === ch.daysTotal;
-          
+
           if (isFinished) {
             setTimeout(() => {
               addNotification("success", `🏆 Challenge Completed: "${ch.title}"! +${ch.points} pts`);
               addXPPoints(200);
               setGreenPoints((pts) => pts + ch.points);
             }, 300);
-            return {
-              ...ch,
-              daysCompleted: completed,
-              progress: pct,
-              status: "completed",
-            };
+            return { ...ch, daysCompleted: completed, progress: pct, status: "completed" };
           }
-          return {
-            ...ch,
-            daysCompleted: completed,
-            progress: pct,
-          };
+          return { ...ch, daysCompleted: completed, progress: pct };
         }
         return ch;
       })
     );
-  };
+  }, [addNotification, addXPPoints]);
 
-  const redeemReward = (rewardId: string): boolean => {
+  // ──────────────────────────────────────────────
+  // Rewards
+  // ──────────────────────────────────────────────
+  const redeemReward = useCallback((rewardId: string): boolean => {
     let success = false;
     setRewards((prevRewards) =>
       prevRewards.map((item) => {
@@ -503,29 +632,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       })
     );
     return success;
-  };
+  }, [greenPoints, addNotification, addXPPoints]);
 
-  const sendChatMessage = async (text: string) => {
-    if (!text.trim()) return;
+  // ──────────────────────────────────────────────
+  // AI Chat (Gemini API)
+  // ──────────────────────────────────────────────
+  const sendChatMessage = useCallback(async (text: string) => {
+    const sanitized = sanitizeInput(text);
+    if (!sanitized) return;
 
     const userMsg: ChatMessage = {
-      id: Math.random().toString(),
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36),
       sender: "user",
-      text,
+      text: sanitized,
       timestamp: new Date(),
     };
 
     setChatHistory((prev) => [...prev, userMsg]);
 
-    // Retrieve keys from process.env if available, or fall back to obfuscated strings to prevent push protection blocks
-    const key1 = process.env.NEXT_PUBLIC_GEMINI_API_KEY || ["AQ.", "Ab8RN6K1J", "ERBo2QywFlgd", "4RNZWawUdaBf", "0OebiTCTCWUjT6qzA"].join("");
-    const key2 = process.env.NEXT_PUBLIC_VISION_API_KEY || ["AIzaSyBh6m__", "Gi4DpP8Y", "VutGmtDSIKezceCyvO8"].join("");
+    const apiKey = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
-    const keysToTry = [key1, key2];
-
-    const systemPrompt = `You are CarbonCoach AI, an enthusiastic, knowledgeable sustainability coach.
+    const systemPrompt = `You are CarbonCoach AI, an enthusiastic, knowledgeable sustainability coach powered by Google Gemini.
 Your job is to help users track, simulate, and reduce their carbon footprint.
 Be encouraging, professional, and actionable. Use markdown for lists/bolding where helpful.
+Keep responses concise (under 200 words).
 User Profile/Habits:
 - Vehicle Type: ${habits.vehicleType || "Gasoline"}
 - Daily Travel Distance: ${habits.travelDistance} km
@@ -539,7 +669,7 @@ User Profile/Habits:
     let reply = "";
     let success = false;
 
-    // Filter chatHistory to map roles correctly for Gemini API
+    // Build conversation history for Gemini
     const contents = chatHistory
       .filter(msg => msg.id !== "init")
       .map(msg => ({
@@ -547,33 +677,28 @@ User Profile/Habits:
         parts: [{ text: msg.text }]
       }));
 
-    // Add current user message
-    contents.push({
-      role: "user",
-      parts: [{ text }]
-    });
+    contents.push({ role: "user", parts: [{ text: sanitized }] });
 
-    for (const key of keysToTry) {
-      if (success) break;
+    if (apiKey) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
+
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key=${key}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${apiKey}`,
           {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
+            signal: controller.signal,
             body: JSON.stringify({
-              systemInstruction: {
-                parts: [{ text: systemPrompt }]
-              },
+              systemInstruction: { parts: [{ text: systemPrompt }] },
               contents,
-              generationConfig: {
-                temperature: 0.7,
-              }
+              generationConfig: { temperature: 0.7 },
             }),
           }
         );
+
+        clearTimeout(timeoutId);
 
         if (response.ok) {
           const data = await response.json();
@@ -584,38 +709,41 @@ User Profile/Habits:
           }
         }
       } catch (err) {
-        console.warn("Failed to generate content with key:", err);
+        console.warn("[CarbonCoach] Gemini API call failed:", err);
       }
     }
 
     if (!success) {
-      // Fallback response generator if API fails
-      reply = "That's a great question! Reducing carbon emissions involves combining smart transit choices, energy efficiency, and mindful consumption. What specific habit would you like to target today?";
-      const lower = text.toLowerCase();
-      
+      // Intelligent fallback responses
+      const lower = sanitized.toLowerCase();
       if (lower.includes("how can i reduce") || lower.includes("ways to reduce")) {
-        reply = "To quickly reduce your carbon footprint:\n1. Move to active transport (cycling, walking) or electric cars.\n2. Set AC thermostat higher by 1-2°C.\n3. Adopt a plant-based diet at least 3 days a week.\n4. Recycle, compost, and avoid fast fashion shopping.";
-      } else if (lower.includes("cycling") || lower.includes("bike") || lower.includes("cycling better")) {
-        reply = "Absolutely! Cycling generates 0g CO₂/km, while a standard petrol car emits about 180g CO₂/km. Public transport averages 35g CO₂/km per passenger. Cycling or walking is the absolute greenest travel method!";
+        reply = "**Great question!** Here are proven ways to reduce your carbon footprint:\n\n1. 🚲 Switch to **active transport** (cycling, walking) or electric vehicles\n2. ❄️ Set your AC thermostat **1-2°C higher** — saves ~110 kg CO₂/year\n3. 🥗 Adopt a **plant-based diet** at least 3 days/week\n4. ♻️ **Recycle, compost**, and avoid fast fashion\n5. 💡 Switch to **LED bulbs** and unplug idle devices\n\nWant me to calculate the savings for any specific change?";
+      } else if (lower.includes("cycling") || lower.includes("bike")) {
+        reply = "🚲 **Cycling is the greenest transit!** It generates **0g CO₂/km**, compared to:\n- 🚗 Petrol car: ~180g CO₂/km\n- 🚌 Bus: ~35g CO₂/km\n- 🚆 Train: ~14g CO₂/km\n\nSwitching your daily commute could save **over 1 tonne CO₂/year!**";
       } else if (lower.includes("flight") || lower.includes("plane") || lower.includes("flying")) {
-        reply = "A single flight emits significant greenhouse gases. A standard round-trip domestic flight (e.g. NYC to LA) emits about 0.8 to 1.2 Tons of CO₂ per passenger. That's nearly 20% of the average yearly carbon allowance in just one trip!";
+        reply = "✈️ A round-trip domestic flight emits **0.8–1.2 tonnes CO₂** per passenger — nearly **20% of the average yearly carbon budget** in just one trip!\n\n**Alternatives:** Train travel emits ~75% less. For unavoidable flights, consider verified **carbon offset programs**.";
       } else if (lower.includes("ac") || lower.includes("air conditioner")) {
-        reply = "Reducing AC runtime by 1 hour daily can save roughly 110 kg of CO₂ per year. Setting the temperature to 25°C (77°F) instead of 21°C is a fantastic step that saves both power and emissions!";
+        reply = "❄️ **AC optimization tips:**\n1. Reduce runtime by 1 hour/day → saves **~110 kg CO₂/year**\n2. Set temperature to **25°C (77°F)** instead of 21°C\n3. Clean filters monthly for **15-20% better efficiency**\n4. Use ceiling fans to support — they use 10x less energy!";
       } else if (lower.includes("meat") || lower.includes("diet") || lower.includes("vegan")) {
-        reply = "Meat production, particularly beef and lamb, has a high greenhouse gas cost due to land usage and methane emissions. Swapping beef for a plant-based alternative can save up to 4 kg of CO₂ per meal!";
+        reply = "🥩 **Dietary impact on emissions:**\n- Beef: ~27 kg CO₂/kg produced\n- Chicken: ~6.9 kg CO₂/kg\n- Plant-based: ~2 kg CO₂/kg\n\nSwapping beef for plant-based alternatives saves up to **4 kg CO₂ per meal!** Going vegetarian 3 days/week saves ~500 kg CO₂/year.";
+      } else {
+        reply = "That's a great question! 🌿 Reducing carbon emissions involves combining smart transit choices, energy efficiency, and mindful consumption. I'm here to help you analyze and optimize each area. What specific habit would you like to explore today?";
       }
     }
 
     const botMsg: ChatMessage = {
-      id: Math.random().toString(),
+      id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36),
       sender: "bot",
       text: reply,
       timestamp: new Date(),
     };
     setChatHistory((prev) => [...prev, botMsg]);
-  };
+  }, [chatHistory, habits]);
 
-  const triggerCameraScan = (category: string, imageUrl: string) => {
+  // ──────────────────────────────────────────────
+  // Camera Scan
+  // ──────────────────────────────────────────────
+  const triggerCameraScan = useCallback((category: string, imageUrl: string) => {
     let item = "Eco-Friendly Option";
     let emission = 2.0;
     let alternative = 0.5;
@@ -644,7 +772,7 @@ User Profile/Habits:
 
     setTimeout(() => {
       const newScan = {
-        id: Math.random().toString(),
+        id: crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36),
         item,
         category,
         emission,
@@ -659,16 +787,21 @@ User Profile/Habits:
       addXPPoints(50);
       setGreenPoints((pts) => pts + 20);
     }, 1500);
-  };
+  }, [addNotification, addXPPoints]);
 
-  const logout = () => {
-    setUser({
-      name: "",
-      age: "",
-      country: "United States",
-      occupation: "",
-      onboarded: false,
-    });
+  // ──────────────────────────────────────────────
+  // Logout
+  // ──────────────────────────────────────────────
+  const logout = useCallback(async () => {
+    try {
+      await firebaseSignOut(auth);
+    } catch (err) {
+      console.warn("[AppContext] Firebase sign-out error:", err);
+    }
+
+    setUser(defaultUser);
+    setFirebaseUser(null);
+    setIsAuthenticated(false);
     setHabits(defaultHabits);
     setGreenPoints(0);
     setXp(0);
@@ -679,11 +812,12 @@ User Profile/Habits:
       {
         id: "init",
         sender: "bot",
-        text: "Hello! I am your AI Carbon Coach. You can ask me anything about climate change, reducing emissions, or tracking your daily carbon footprint!",
+        text: "Hello! I am your AI Carbon Coach powered by Google Gemini. You can ask me anything about climate change, reducing emissions, or tracking your daily carbon footprint!",
         timestamp: new Date(),
       },
     ]);
     setActiveTab("dashboard");
+
     if (typeof window !== "undefined") {
       localStorage.removeItem("carbon_user");
       localStorage.removeItem("carbon_habits");
@@ -695,12 +829,15 @@ User Profile/Habits:
       localStorage.removeItem("carbon_scans");
       localStorage.removeItem("carbon_chat");
     }
-  };
+  }, []);
 
   return (
     <AppContext.Provider
       value={{
         user,
+        firebaseUser,
+        isAuthenticated,
+        isAuthLoading,
         habits,
         carbonScore,
         monthlyEmissions,
@@ -715,8 +852,10 @@ User Profile/Habits:
         chatHistory,
         notifications,
         cameraScans,
-        login,
-        signUp,
+        loginWithEmail,
+        signUpWithEmail,
+        loginWithGoogle,
+        logout,
         completeOnboarding,
         updateHabits,
         joinChallenge,
@@ -728,7 +867,6 @@ User Profile/Habits:
         addNotification,
         clearNotification,
         setActiveTab,
-        logout,
       }}
     >
       {children}

@@ -1,8 +1,7 @@
 "use client";
 
 import React from "react";
-import Link from "next/link";
-import { ArrowRight, Leaf, Globe, Zap, ArrowDown } from "lucide-react";
+import { ArrowRight, Leaf, Zap, ArrowDown } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface LandingHeroProps {

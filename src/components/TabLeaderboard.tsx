@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { Users, Trophy, Award, Search, ArrowUpRight } from "lucide-react";
+import { Users, Trophy, Search } from "lucide-react";
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 interface BoardUser {
   rank: number;
@@ -100,10 +101,13 @@ export default function TabLeaderboard() {
           className="flex flex-col items-center gap-1.5 text-center"
         >
           <div className="relative">
-            <img
+            <Image
               src={leaderboardUsers[1].avatar}
+              width={56}
+              height={56}
               className="w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 border-slate-400 object-cover"
               alt={`${leaderboardUsers[1].name} Avatar`}
+              unoptimized
             />
             <span className="absolute -bottom-0.5 -right-0.5 bg-slate-400 text-slate-950 font-black text-[8px] sm:text-[10px] rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center border border-slate-900 shadow">
               2
@@ -127,10 +131,13 @@ export default function TabLeaderboard() {
         >
           <div className="absolute -top-5 text-base sm:text-lg animate-bounce">👑</div>
           <div className="relative">
-            <img
+            <Image
               src={leaderboardUsers[0].avatar}
+              width={72}
+              height={72}
               className="w-14 h-14 sm:w-18 sm:h-18 rounded-full border-[3px] border-amber-400 object-cover"
               alt={`${leaderboardUsers[0].name} Avatar`}
+              unoptimized
             />
             <span className="absolute -bottom-0.5 -right-0.5 bg-amber-400 text-slate-950 font-black text-[8px] sm:text-[10px] rounded-full w-4.5 h-4.5 sm:w-5 sm:h-5 flex items-center justify-center border border-slate-900 shadow">
               1
@@ -153,10 +160,13 @@ export default function TabLeaderboard() {
           className="flex flex-col items-center gap-1.5 text-center"
         >
           <div className="relative">
-            <img
+            <Image
               src={leaderboardUsers[2].avatar}
+              width={56}
+              height={56}
               className="w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 border-amber-600 object-cover"
               alt={`${leaderboardUsers[2].name} Avatar`}
+              unoptimized
             />
             <span className="absolute -bottom-0.5 -right-0.5 bg-amber-600 text-slate-950 font-black text-[8px] sm:text-[10px] rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center border border-slate-900 shadow">
               3
@@ -213,7 +223,7 @@ export default function TabLeaderboard() {
                   </td>
                   <td className="p-3 sm:p-4">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <img src={item.avatar} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-800 shrink-0" alt={`${item.name} Avatar`} />
+                      <Image src={item.avatar} width={32} height={32} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-800 shrink-0" alt={`${item.name} Avatar`} unoptimized />
                       <div className="min-w-0">
                         <p className="text-white text-xs truncate">{item.name}</p>
                         {item.isCurrentUser && <p className="text-[9px] text-emerald-400 font-normal">Active streak</p>}

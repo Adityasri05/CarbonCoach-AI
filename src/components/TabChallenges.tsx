@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useApp } from "@/context/AppContext";
-import { Award, Flame, Leaf, Check, Plus, Loader } from "lucide-react";
+import { Award, Check, Plus } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function TabChallenges() {

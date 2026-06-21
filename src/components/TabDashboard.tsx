@@ -6,12 +6,10 @@ import {
   TrendingDown,
   Globe,
   Award,
-  Zap,
   Leaf,
   Calendar,
   Sparkles,
   ArrowRight,
-  TrendingUp,
   PieChartIcon,
   BarChartIcon
 } from "lucide-react";
@@ -25,20 +23,18 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   LineChart,
   Line
 } from "recharts";
 import { motion } from "framer-motion";
 
 export default function TabDashboard() {
-  const { carbonScore, monthlyEmissions, greenPoints, level, streak, habits } = useApp();
+  const { carbonScore, monthlyEmissions, greenPoints, level, streak } = useApp();
   const [chartType, setChartType] = useState<"pie" | "bar">("pie");
   const [trendTimeframe, setTrendTimeframe] = useState<"daily" | "weekly" | "monthly">("weekly");
 
   // Dynamic calculations based on current carbon score
   const scorePercentOfUSAvg = Math.round((carbonScore / 16.0) * 100); // US average is roughly 16 Tons
-  const globalTargetPercent = Math.round((2.0 / carbonScore) * 100); // Ideal carbon target is 2.0 Tons
 
   // Category breakdown mock data based on habits
   const breakdownData = [

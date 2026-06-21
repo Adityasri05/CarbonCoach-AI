@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Suspense, lazy } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useApp } from "@/context/AppContext";
 import {
   LayoutDashboard,
@@ -17,26 +18,39 @@ import {
   X,
   Flame,
   CheckCircle2,
-  Info
+  Info,
+  Loader2
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-// Subpage tabs imports
-import TabDashboard from "@/components/TabDashboard";
-import TabCarbonTwin from "@/components/TabCarbonTwin";
-import TabCamera from "@/components/TabCamera";
-import TabChallenges from "@/components/TabChallenges";
-import TabLeaderboard from "@/components/TabLeaderboard";
-import TabRewards from "@/components/TabRewards";
-import TabProfile from "@/components/TabProfile";
+// Lazy-load heavy tab components for performance optimization
+const TabDashboard = lazy(() => import("@/components/TabDashboard"));
+const TabCarbonTwin = lazy(() => import("@/components/TabCarbonTwin"));
+const TabCamera = lazy(() => import("@/components/TabCamera"));
+const TabChallenges = lazy(() => import("@/components/TabChallenges"));
+const TabLeaderboard = lazy(() => import("@/components/TabLeaderboard"));
+const TabRewards = lazy(() => import("@/components/TabRewards"));
+const TabProfile = lazy(() => import("@/components/TabProfile"));
 
 // Global Overlay component
 import AIChatbot from "@/components/AIChatbot";
+
+/** Loading fallback for lazy-loaded tab components */
+function TabLoadingFallback() {
+  return (
+    <div role="status" aria-label="Loading tab content" className="flex flex-col items-center justify-center py-20 gap-3">
+      <Loader2 className="animate-spin text-emerald-400" size={28} />
+      <p className="text-xs text-slate-500">Loading...</p>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const router = useRouter();
   const {
     user,
+    isAuthenticated,
+    isAuthLoading,
     greenPoints,
     activeTab,
     setActiveTab,
@@ -47,12 +61,16 @@ export default function Dashboard() {
 
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
 
-  // Auto redirect to onboarding if user is somehow logged out / reset
+  // Auth guard: redirect to login if not authenticated, or onboarding if not completed
   useEffect(() => {
-    if (!user || !user.onboarded) {
-      router.push("/onboarding");
+    if (!isAuthLoading) {
+      if (!isAuthenticated) {
+        router.push("/auth");
+      } else if (user && !user.onboarded) {
+        router.push("/onboarding");
+      }
     }
-  }, [user, router]);
+  }, [user, isAuthenticated, isAuthLoading, router]);
 
   // Tab definitions
   const sidebarItems = [
@@ -86,16 +104,16 @@ export default function Dashboard() {
     }
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push("/");
   };
 
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-dark-bg text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-300">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-dark-bg text-slate-100 font-sans selection:bg-emerald-500/30 selection:text-emerald-300" role="application" aria-label="CarbonCoach AI Dashboard">
       
       {/* Desktop Sidebar navigation */}
-      <aside className="hidden lg:flex flex-col w-[260px] bg-slate-950/95 border-r border-slate-800/60 shrink-0 px-4 py-6 justify-between backdrop-blur-sm">
+      <aside role="navigation" aria-label="Main navigation" className="hidden lg:flex flex-col w-[260px] bg-slate-950/95 border-r border-slate-800/60 shrink-0 px-4 py-6 justify-between backdrop-blur-sm">
         <div className="space-y-8">
           {/* Logo brand */}
           <div className="flex items-center gap-2.5 px-3">
@@ -231,10 +249,13 @@ export default function Dashboard() {
               onClick={() => setActiveTab("profile")}
               className="flex items-center gap-2 cursor-pointer hover:opacity-85 transition-opacity"
             >
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&q=80"
+                width={32}
+                height={32}
                 className="w-8 h-8 rounded-full object-cover border-2 border-slate-700/80 hover:border-emerald-500/50 transition-colors"
                 alt="User avatar"
+                unoptimized
               />
               <span className="text-xs font-bold text-slate-300 hidden sm:inline">{user.name.split(" ")[0]}</span>
             </div>
@@ -242,7 +263,7 @@ export default function Dashboard() {
         </header>
 
         {/* Dynamic subview tab content */}
-        <main className="flex-1 p-4 sm:p-5 lg:p-8 max-w-6xl w-full mx-auto relative">
+        <main id="main-content" role="main" aria-label="Dashboard content" className="flex-1 p-4 sm:p-5 lg:p-8 max-w-6xl w-full mx-auto relative">
           
           {/* Floating alerts display (Toast system) */}
           <div className="fixed top-16 sm:top-20 right-4 sm:right-6 z-50 flex flex-col gap-2 pointer-events-none max-w-[90vw] sm:max-w-sm w-full">
@@ -279,7 +300,9 @@ export default function Dashboard() {
             </AnimatePresence>
           </div>
 
-          {renderActiveTabContent()}
+          <Suspense fallback={<TabLoadingFallback />}>
+            {renderActiveTabContent()}
+          </Suspense>
         </main>
       </div>
 
@@ -287,7 +310,7 @@ export default function Dashboard() {
       <AIChatbot />
 
       {/* Mobile Bottom Navigation Bar - Enhanced with larger touch targets */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/60 flex lg:hidden items-stretch justify-around px-1 safe-bottom" style={{ height: '72px' }}>
+      <nav role="navigation" aria-label="Mobile navigation" className="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/95 backdrop-blur-xl border-t border-slate-800/60 flex lg:hidden items-stretch justify-around px-1 safe-bottom" style={{ height: '72px' }}>
         {sidebarItems.slice(0, 5).map((item) => {
           const Icon = item.icon;
           const isActive = activeTab === item.id;
@@ -342,12 +365,15 @@ export default function Dashboard() {
               transition={{ type: "spring", stiffness: 400, damping: 30 }}
             />
           )}
-          <img
+          <Image
             src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&q=80"
+            width={20}
+            height={20}
             className={`w-5 h-5 rounded-full object-cover border-2 ${
               activeTab === "profile" ? "border-emerald-400" : "border-slate-700"
             }`}
             alt="Profile Avatar"
+            unoptimized
           />
           <span>Profile</span>
         </button>

@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { Camera, Image as ImageIcon, Sparkles, Check, ArrowRight, RefreshCw, Eye } from "lucide-react";
+import { Camera, Image as ImageIcon, Sparkles, Check, RefreshCw, Eye } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import Image from "next/image";
 
 export default function TabCamera() {
   const { cameraScans, triggerCameraScan } = useApp();
@@ -134,10 +135,12 @@ export default function TabCamera() {
               >
                 <div className="w-32 h-32 sm:w-40 sm:h-40 border border-slate-700 rounded-2xl relative overflow-hidden bg-slate-950 flex items-center justify-center shadow-inner">
                   {/* Backdrop preset image */}
-                  <img
-                    src={presets.find((p) => p.id === selectedPreset)?.imageUrl}
-                    className="w-full h-full object-cover opacity-40 blur-sm"
+                  <Image
+                    src={presets.find((p) => p.id === selectedPreset)?.imageUrl || ""}
+                    fill
+                    className="object-cover opacity-40 blur-sm"
                     alt="Scanning"
+                    unoptimized
                   />
                   {/* Laser line animation */}
                   <motion.div
@@ -234,7 +237,7 @@ export default function TabCamera() {
                 className="flex items-center justify-between p-3 bg-slate-900/40 hover:bg-slate-900/80 rounded-xl border border-slate-800/60 transition-colors gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <img src={scan.imageUrl} className="w-9 h-9 sm:w-10 sm:h-10 object-cover rounded-lg border border-slate-800 shrink-0" alt={`${scan.item} Preview`} />
+                  <Image src={scan.imageUrl} width={40} height={40} className="w-9 h-9 sm:w-10 sm:h-10 object-cover rounded-lg border border-slate-800 shrink-0" alt={`${scan.item} Preview`} unoptimized />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-white truncate">{scan.item}</p>
                     <p className="text-[9px] text-slate-500 uppercase tracking-wider">{scan.category}</p>

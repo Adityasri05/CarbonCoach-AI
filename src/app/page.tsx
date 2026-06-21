@@ -4,7 +4,7 @@ import React from "react";
 import { useRouter } from "next/navigation";
 import LandingHero from "@/components/LandingHero";
 import FeatureGrid from "@/components/FeatureGrid";
-import { Leaf, Shield, HeartHandshake, Zap, MessageSquare, Menu, X } from "lucide-react";
+import { Leaf, Shield, Zap, Menu, X } from "lucide-react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 
@@ -109,7 +109,7 @@ export default function Home() {
       </header>
 
       {/* Main Sections */}
-      <main className="flex-1">
+      <main id="main-content" role="main" className="flex-1">
         
         {/* Hero Section */}
         <LandingHero onGetStarted={handleGetStarted} onCalculate={handleCalculate} />
@@ -216,7 +216,7 @@ export default function Home() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950 py-12 px-6">
+      <footer role="contentinfo" className="border-t border-slate-900 bg-slate-950 py-12 px-6">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
             <div className="p-2 bg-emerald-500/10 text-emerald-400 rounded-xl">

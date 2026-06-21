@@ -2,11 +2,11 @@
 
 import React from "react";
 import { useApp } from "@/context/AppContext";
-import { User, Award, ShieldAlert, Sparkles, MapPin, Briefcase, Calendar, Info, ShieldCheck, Flame, Compass } from "lucide-react";
-import { motion } from "framer-motion";
+import { User, MapPin, Briefcase, Calendar, ShieldCheck, Flame, Compass } from "lucide-react";
+import Image from "next/image";
 
 export default function TabProfile() {
-  const { user, carbonScore, level, streak, greenPoints, challenges } = useApp();
+  const { user, level, streak, greenPoints, challenges } = useApp();
 
   const completedCount = challenges.filter((c) => c.status === "completed").length;
   
@@ -67,10 +67,13 @@ export default function TabProfile() {
           {/* Avatar mockup */}
           <div className="relative mt-4">
             <div className="w-24 h-24 rounded-full border-4 border-emerald-400 overflow-hidden shadow-2xl">
-              <img
+              <Image
                 src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=200&q=80"
+                width={96}
+                height={96}
                 className="w-full h-full object-cover"
                 alt="Profile Avatar"
+                unoptimized
               />
             </div>
             <span className="absolute bottom-0 right-0 bg-emerald-500 text-slate-950 font-black text-xs px-2 py-0.5 rounded-full border border-slate-900 shadow">

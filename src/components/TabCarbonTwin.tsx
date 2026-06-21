@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { Sparkles, Sliders, Info, Leaf, CloudRain, Flame } from "lucide-react";
+import { Sparkles, Sliders, Info } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function TabCarbonTwin() {
