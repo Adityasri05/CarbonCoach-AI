@@ -3,12 +3,25 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
+import helmet from 'helmet';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for frontend cross-origin requests
+  // Enable security headers via Helmet
+  app.use(
+    helmet({
+      contentSecurityPolicy: false, // Swagger doc UI requires script assets; API client CSP is handled at the hosting level
+    }),
+  );
+
+  // Enable CORS for trusted frontend domains
   app.enableCors({
-    origin: '*',
+    origin: [
+      'https://carboncoach-ai-pro.web.app',
+      'https://carboncoach-ai-pro.firebaseapp.com',
+      'http://localhost:3000',
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });
