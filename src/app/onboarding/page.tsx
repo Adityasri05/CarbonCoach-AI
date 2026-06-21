@@ -131,7 +131,7 @@ export default function Onboarding() {
               >
                 <div>
                   <h2 className="text-xl font-black text-white">Tell us about yourself</h2>
-                  <p className="text-xs text-slate-400 mt-1">Let's set up your custom coach profile.</p>
+                  <p className="text-xs text-slate-400 mt-1">Let&apos;s set up your custom coach profile.</p>
                 </div>
 
                 <div className="space-y-3 pt-2">

@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# backend
+carbon-coach-backend/node_modules
+carbon-coach-backend/dist
+carbon-coach-backend/coverage
+
+# firebase cache
+.firebase/

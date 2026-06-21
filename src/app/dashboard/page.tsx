@@ -347,7 +347,7 @@ export default function Dashboard() {
             className={`w-5 h-5 rounded-full object-cover border-2 ${
               activeTab === "profile" ? "border-emerald-400" : "border-slate-700"
             }`}
-            alt=""
+            alt="Profile Avatar"
           />
           <span>Profile</span>
         </button>

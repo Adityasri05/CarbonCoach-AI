@@ -103,7 +103,7 @@ export default function TabLeaderboard() {
             <img
               src={leaderboardUsers[1].avatar}
               className="w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 border-slate-400 object-cover"
-              alt=""
+              alt={`${leaderboardUsers[1].name} Avatar`}
             />
             <span className="absolute -bottom-0.5 -right-0.5 bg-slate-400 text-slate-950 font-black text-[8px] sm:text-[10px] rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center border border-slate-900 shadow">
               2
@@ -130,7 +130,7 @@ export default function TabLeaderboard() {
             <img
               src={leaderboardUsers[0].avatar}
               className="w-14 h-14 sm:w-18 sm:h-18 rounded-full border-[3px] border-amber-400 object-cover"
-              alt=""
+              alt={`${leaderboardUsers[0].name} Avatar`}
             />
             <span className="absolute -bottom-0.5 -right-0.5 bg-amber-400 text-slate-950 font-black text-[8px] sm:text-[10px] rounded-full w-4.5 h-4.5 sm:w-5 sm:h-5 flex items-center justify-center border border-slate-900 shadow">
               1
@@ -156,7 +156,7 @@ export default function TabLeaderboard() {
             <img
               src={leaderboardUsers[2].avatar}
               className="w-10 h-10 sm:w-14 sm:h-14 rounded-full border-2 border-amber-600 object-cover"
-              alt=""
+              alt={`${leaderboardUsers[2].name} Avatar`}
             />
             <span className="absolute -bottom-0.5 -right-0.5 bg-amber-600 text-slate-950 font-black text-[8px] sm:text-[10px] rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center border border-slate-900 shadow">
               3
@@ -184,6 +184,7 @@ export default function TabLeaderboard() {
             placeholder="Search players..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            aria-label="Search players"
             className="bg-transparent border-none outline-none text-slate-100 text-xs w-full placeholder-slate-500 focus:ring-0"
           />
         </div>
@@ -212,7 +213,7 @@ export default function TabLeaderboard() {
                   </td>
                   <td className="p-3 sm:p-4">
                     <div className="flex items-center gap-2 sm:gap-3">
-                      <img src={item.avatar} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-800 shrink-0" alt="" />
+                      <img src={item.avatar} className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-800 shrink-0" alt={`${item.name} Avatar`} />
                       <div className="min-w-0">
                         <p className="text-white text-xs truncate">{item.name}</p>
                         {item.isCurrentUser && <p className="text-[9px] text-emerald-400 font-normal">Active streak</p>}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { Sparkles, Sliders, Info, Leaf, CloudRain, Flame } from "lucide-react";
 import { motion } from "framer-motion";
@@ -14,29 +14,18 @@ export default function TabCarbonTwin() {
   const [electricity, setElectricity] = useState(250); // kWh/month
   const [flights, setFlights] = useState(3); // flights/year
 
-  const [futureScore, setFutureScore] = useState(carbonScore);
-  const [reductionPct, setReductionPct] = useState(0);
+  // Compute simulated carbon footprint in real-time during render
+  const transportCarbon = ((7 - publicTransport) * 52 * 8) / 1000; // less public transport = more personal car driving
+  const meatCarbon = (meatMeals * 52 * 2.5) / 1000; // 2.5 kg CO2 per meat meal
+  const energyCarbon = (electricity * 12 * 0.4) / 1000; // 0.4 kg CO2 per kWh
+  const flightCarbon = flights * 0.9; // 0.9 Tons per flight average
 
-  // Compute simulated carbon footprint in real-time
-  useEffect(() => {
-    // Basic approximate math matching our main context formula but scaled for twin simulation
-    const transportCarbon = ((7 - publicTransport) * 52 * 8) / 1000; // less public transport = more personal car driving
-    const meatCarbon = (meatMeals * 52 * 2.5) / 1000; // 2.5 kg CO2 per meat meal
-    const energyCarbon = (electricity * 12 * 0.4) / 1000; // 0.4 kg CO2 per kWh
-    const flightCarbon = flights * 0.9; // 0.9 Tons per flight average
-
-    // baseline constants
-    const wasteCarbon = 0.5;
-    const shoppingCarbon = 0.6;
-    
-    const simulated = parseFloat((transportCarbon + meatCarbon + energyCarbon + flightCarbon + wasteCarbon + shoppingCarbon).toFixed(1));
-    setFutureScore(simulated);
-
-    if (carbonScore > 0) {
-      const pct = Math.max(0, Math.round(((carbonScore - simulated) / carbonScore) * 100));
-      setReductionPct(pct);
-    }
-  }, [publicTransport, meatMeals, electricity, flights, carbonScore]);
+  // baseline constants
+  const wasteCarbon = 0.5;
+  const shoppingCarbon = 0.6;
+  
+  const futureScore = parseFloat((transportCarbon + meatCarbon + energyCarbon + flightCarbon + wasteCarbon + shoppingCarbon).toFixed(1));
+  const reductionPct = carbonScore > 0 ? Math.max(0, Math.round(((carbonScore - futureScore) / carbonScore) * 100)) : 0;
 
   // Determine tree health / visualization factors based on reduction
   const getVisualizationState = () => {

@@ -255,6 +255,7 @@ export default function TabDashboard() {
             <div className="flex bg-slate-800/80 rounded-lg p-0.5 border border-slate-700/50">
               <button
                 onClick={() => setChartType("pie")}
+                aria-label="Show Pie Chart"
                 className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                   chartType === "pie" ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold" : "text-slate-400 hover:text-white"
                 }`}
@@ -263,6 +264,7 @@ export default function TabDashboard() {
               </button>
               <button
                 onClick={() => setChartType("bar")}
+                aria-label="Show Bar Chart"
                 className={`p-1.5 rounded-md transition-colors cursor-pointer ${
                   chartType === "bar" ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-bold" : "text-slate-400 hover:text-white"
                 }`}

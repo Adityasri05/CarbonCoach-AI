@@ -118,8 +118,9 @@ export default function AuthPage() {
             {/* Name field for Signup */}
             {formState === "signup" && (
               <div className="space-y-1.5">
-                <label className="text-sm text-slate-400 font-semibold block">Full Name</label>
+                <label htmlFor="full-name" className="text-sm text-slate-400 font-semibold block">Full Name</label>
                 <input
+                  id="full-name"
                   type="text"
                   placeholder="Alex Rivera"
                   value={name}
@@ -132,9 +133,10 @@ export default function AuthPage() {
 
             {/* Email field */}
             <div className="space-y-1.5">
-              <label className="text-sm text-slate-400 font-semibold block">Email Address</label>
+              <label htmlFor="email" className="text-sm text-slate-400 font-semibold block">Email Address</label>
               <div className="relative">
                 <input
+                  id="email"
                   type="email"
                   placeholder="name@example.com"
                   value={email}
@@ -150,7 +152,7 @@ export default function AuthPage() {
             {formState !== "forgot" && (
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
-                  <label className="text-sm text-slate-400 font-semibold">Password</label>
+                  <label htmlFor="password" className="text-sm text-slate-400 font-semibold">Password</label>
                   {formState === "login" && (
                     <button
                       type="button"
@@ -163,6 +165,7 @@ export default function AuthPage() {
                 </div>
                 <div className="relative">
                   <input
+                    id="password"
                     type={showPassword ? "text" : "password"}
                     placeholder="••••••••"
                     value={password}

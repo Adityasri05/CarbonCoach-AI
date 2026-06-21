@@ -234,7 +234,7 @@ export default function TabCamera() {
                 className="flex items-center justify-between p-3 bg-slate-900/40 hover:bg-slate-900/80 rounded-xl border border-slate-800/60 transition-colors gap-3"
               >
                 <div className="flex items-center gap-3 min-w-0">
-                  <img src={scan.imageUrl} className="w-9 h-9 sm:w-10 sm:h-10 object-cover rounded-lg border border-slate-800 shrink-0" alt="" />
+                  <img src={scan.imageUrl} className="w-9 h-9 sm:w-10 sm:h-10 object-cover rounded-lg border border-slate-800 shrink-0" alt={`${scan.item} Preview`} />
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-white truncate">{scan.item}</p>
                     <p className="text-[9px] text-slate-500 uppercase tracking-wider">{scan.category}</p>

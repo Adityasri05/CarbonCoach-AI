@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState } from "react";
 
 export interface UserProfile {
   name: string;
@@ -210,8 +210,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [habits, setHabits] = useState<Habits>(defaultHabits);
-  const [carbonScore, setCarbonScore] = useState<number>(6.2); // Tons CO2/yr
-  const [monthlyEmissions, setMonthlyEmissions] = useState<number>(520); // kg CO2
+  
+  // Recalculate carbon score dynamically based on user habits using useMemo
+  const { carbonScore, monthlyEmissions } = React.useMemo(() => {
+    // Basic approximate carbon footprint formula for illustrative UX purposes
+    let transportScore = 0;
+    if (habits.vehicleType === "Gasoline") transportScore = (habits.travelDistance * 365 * 0.18) / 1000;
+    else if (habits.vehicleType === "Diesel") transportScore = (habits.travelDistance * 365 * 0.20) / 1000;
+    else if (habits.vehicleType === "Hybrid") transportScore = (habits.travelDistance * 365 * 0.09) / 1000;
+    else if (habits.vehicleType === "Electric") transportScore = (habits.travelDistance * 365 * 0.04) / 1000;
+    else transportScore = (habits.travelDistance * 365 * 0.02) / 1000; // Public transport/walking
+
+    const energyScore = (habits.electricityBill * 12 * 0.4) / 100 + (habits.acUsage * 365 * 0.5) / 1000;
+    
+    let foodScore = 1.5; // Average baseline
+    if (habits.foodHabit === "Vegan") foodScore = 0.6;
+    else if (habits.foodHabit === "Vegetarian") foodScore = 0.9;
+    else if (habits.foodHabit === "Eggetarian") foodScore = 1.1;
+    else foodScore = 2.1; // Non-veg meat heavy
+
+    let wasteScore = 0.8;
+    if (habits.recyclingHabits === "Always") wasteScore = 0.3;
+    else if (habits.recyclingHabits === "Sometimes") wasteScore = 0.5;
+
+    let shoppingScore = 0.5;
+    if (habits.shoppingFrequency === "Daily") shoppingScore = 1.2;
+    else if (habits.shoppingFrequency === "Weekly") shoppingScore = 0.8;
+    else if (habits.shoppingFrequency === "Monthly") shoppingScore = 0.4;
+
+    const total = parseFloat((transportScore + energyScore + foodScore + wasteScore + shoppingScore).toFixed(1));
+    return {
+      carbonScore: total,
+      monthlyEmissions: Math.round((total * 1000) / 12),
+    };
+  }, [habits]);
+
   const [reductionGoal, setReductionGoal] = useState<number>(72); // Completed
   const [greenPoints, setGreenPoints] = useState<number>(1250);
   const [xp, setXp] = useState<number>(750);
@@ -230,38 +263,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       timestamp: new Date(),
     },
   ]);
-
-  // Recalculate carbon score dynamically based on user habits
-  useEffect(() => {
-    // Basic approximate carbon footprint formula for illustrative UX purposes
-    let transportScore = 0;
-    if (habits.vehicleType === "Gasoline") transportScore = (habits.travelDistance * 365 * 0.18) / 1000;
-    else if (habits.vehicleType === "Diesel") transportScore = (habits.travelDistance * 365 * 0.20) / 1000;
-    else if (habits.vehicleType === "Hybrid") transportScore = (habits.travelDistance * 365 * 0.09) / 1000;
-    else if (habits.vehicleType === "Electric") transportScore = (habits.travelDistance * 365 * 0.04) / 1000;
-    else transportScore = (habits.travelDistance * 365 * 0.02) / 1000; // Public transport/walking
-
-    let energyScore = (habits.electricityBill * 12 * 0.4) / 100 + (habits.acUsage * 365 * 0.5) / 1000;
-    
-    let foodScore = 1.5; // Average baseline
-    if (habits.foodHabit === "Vegan") foodScore = 0.6;
-    else if (habits.foodHabit === "Vegetarian") foodScore = 0.9;
-    else if (habits.foodHabit === "Eggetarian") foodScore = 1.1;
-    else foodScore = 2.1; // Non-veg meat heavy
-
-    let wasteScore = 0.8;
-    if (habits.recyclingHabits === "Always") wasteScore = 0.3;
-    else if (habits.recyclingHabits === "Sometimes") wasteScore = 0.5;
-
-    let shoppingScore = 0.5;
-    if (habits.shoppingFrequency === "Daily") shoppingScore = 1.2;
-    else if (habits.shoppingFrequency === "Weekly") shoppingScore = 0.8;
-    else if (habits.shoppingFrequency === "Monthly") shoppingScore = 0.4;
-
-    const total = parseFloat((transportScore + energyScore + foodScore + wasteScore + shoppingScore).toFixed(1));
-    setCarbonScore(total);
-    setMonthlyEmissions(Math.round((total * 1000) / 12));
-  }, [habits]);
 
   const addNotification = (type: "success" | "info" | "achievement" | "streak", message: string) => {
     const newNotif: NotificationMsg = {

@@ -52,6 +52,8 @@ export default function Home() {
           {/* Mobile hamburger menu */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle mobile menu"
+            aria-expanded={mobileMenuOpen}
             className="md:hidden p-2 text-slate-400 hover:text-white transition-colors"
           >
             {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
