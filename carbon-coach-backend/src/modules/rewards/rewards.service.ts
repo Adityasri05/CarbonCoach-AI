@@ -1,5 +1,9 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
-import { PrismaService } from "../../prisma/prisma.service";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class RewardsService {
@@ -17,7 +21,7 @@ export class RewardsService {
     });
 
     if (!reward) {
-      throw new NotFoundException("Reward not found");
+      throw new NotFoundException('Reward not found');
     }
 
     const leaderboard = await this.prisma.leaderboard.findUnique({
@@ -25,7 +29,7 @@ export class RewardsService {
     });
 
     if (!leaderboard || leaderboard.totalPoints < reward.pointsRequired) {
-      throw new BadRequestException("Insufficient Green Points balance");
+      throw new BadRequestException('Insufficient Green Points balance');
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -50,7 +54,7 @@ export class RewardsService {
       await tx.notification.create({
         data: {
           userId,
-          type: "success",
+          type: 'success',
           message: `🎁 Redeemed: "${reward.title}"! Deducted ${reward.pointsRequired} pts.`,
         },
       });

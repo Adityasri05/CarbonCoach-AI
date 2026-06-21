@@ -1,8 +1,8 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { AnalyticsService } from "./analytics.service";
-import { PrismaService } from "../../prisma/prisma.service";
+import { Test, TestingModule } from '@nestjs/testing';
+import { AnalyticsService } from './analytics.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
-describe("AnalyticsService", () => {
+describe('AnalyticsService', () => {
   let service: AnalyticsService;
   let prisma: PrismaService;
 
@@ -28,18 +28,18 @@ describe("AnalyticsService", () => {
     jest.clearAllMocks();
   });
 
-  describe("getDashboardStats", () => {
-    it("should return baseline scores and breakdown", async () => {
+  describe('getDashboardStats', () => {
+    it('should return baseline scores and breakdown', async () => {
       const mockUser = {
-        id: "u1",
+        id: 'u1',
         leaderboard: { totalPoints: 150 },
       };
-      jest.spyOn(prisma.user, "findUnique").mockResolvedValue(mockUser as any);
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
 
-      const result = await service.getDashboardStats("u1");
+      const result = await service.getDashboardStats('u1');
 
       expect(prisma.user.findUnique).toHaveBeenCalledWith({
-        where: { id: "u1" },
+        where: { id: 'u1' },
         include: {
           leaderboard: true,
           habits: true,
@@ -52,53 +52,55 @@ describe("AnalyticsService", () => {
         reductionGoalPercentage: 72,
         greenPoints: 150,
         breakdown: [
-          { name: "Transportation", value: 2.6, color: "#10B981" },
-          { name: "Energy", value: 1.7, color: "#14B8A6" },
-          { name: "Food", value: 0.9, color: "#0EA5E9" },
-          { name: "Shopping", value: 0.6, color: "#F59E0B" },
-          { name: "Waste", value: 0.3, color: "#EF4444" },
+          { name: 'Transportation', value: 2.6, color: '#10B981' },
+          { name: 'Energy', value: 1.7, color: '#14B8A6' },
+          { name: 'Food', value: 0.9, color: '#0EA5E9' },
+          { name: 'Shopping', value: 0.6, color: '#F59E0B' },
+          { name: 'Waste', value: 0.3, color: '#EF4444' },
         ],
       });
     });
 
-    it("should default greenPoints to 0 if user leaderboard is missing", async () => {
-      jest.spyOn(prisma.user, "findUnique").mockResolvedValue({ id: "u1", leaderboard: null } as any);
-      const result = await service.getDashboardStats("u1");
+    it('should default greenPoints to 0 if user leaderboard is missing', async () => {
+      jest
+        .spyOn(prisma.user, 'findUnique')
+        .mockResolvedValue({ id: 'u1', leaderboard: null } as any);
+      const result = await service.getDashboardStats('u1');
       expect(result.greenPoints).toBe(0);
     });
   });
 
-  describe("getTrends", () => {
-    it("should return daily trends", async () => {
-      const result = await service.getTrends("u1", "daily");
+  describe('getTrends', () => {
+    it('should return daily trends', async () => {
+      const result = await service.getTrends('u1', 'daily');
       expect(result).toHaveLength(7);
-      expect(result[0]).toEqual({ name: "Mon", Emissions: 18 });
+      expect(result[0]).toEqual({ name: 'Mon', Emissions: 18 });
     });
 
-    it("should return weekly trends", async () => {
-      const result = await service.getTrends("u1", "weekly");
+    it('should return weekly trends', async () => {
+      const result = await service.getTrends('u1', 'weekly');
       expect(result).toHaveLength(5);
-      expect(result[0]).toEqual({ name: "Wk 1", Emissions: 135 });
+      expect(result[0]).toEqual({ name: 'Wk 1', Emissions: 135 });
     });
 
-    it("should return monthly trends", async () => {
-      const result = await service.getTrends("u1", "monthly");
+    it('should return monthly trends', async () => {
+      const result = await service.getTrends('u1', 'monthly');
       expect(result).toHaveLength(6);
-      expect(result[0]).toEqual({ name: "Jan", Emissions: 580 });
+      expect(result[0]).toEqual({ name: 'Jan', Emissions: 580 });
     });
   });
 
-  describe("getProjections", () => {
-    it("should return static projections based on baseline target", async () => {
-      const result = await service.getProjections("u1");
+  describe('getProjections', () => {
+    it('should return static projections based on baseline target', async () => {
+      const result = await service.getProjections('u1');
       expect(result).toEqual({
         currentTons: 6.2,
         targetTons: 4.8,
         reductionPct: 23,
         timeline: [
-          { year: "2026", Current: 6.2, Target: 6.2 },
-          { year: "2027", Current: 5.8, Target: 5.2 },
-          { year: "2028", Current: 5.4, Target: 4.8 },
+          { year: '2026', Current: 6.2, Target: 6.2 },
+          { year: '2027', Current: 5.8, Target: 5.2 },
+          { year: '2028', Current: 5.4, Target: 4.8 },
         ],
       });
     });

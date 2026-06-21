@@ -1,6 +1,10 @@
-import { Injectable, NotFoundException, BadRequestException } from "@nestjs/common";
-import { PrismaService } from "../../prisma/prisma.service";
-import { ChallengeStatus } from "@prisma/client";
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
+import { ChallengeStatus } from '@prisma/client';
 
 @Injectable()
 export class ChallengesService {
@@ -19,7 +23,7 @@ export class ChallengesService {
       const part = participations.find((p) => p.challengeId === item.id);
       return {
         ...item,
-        status: part ? part.status : "NOT_JOINED",
+        status: part ? part.status : 'NOT_JOINED',
         daysCompleted: part ? part.daysCompleted : 0,
         progress: part ? part.progress : 0,
       };
@@ -31,7 +35,7 @@ export class ChallengesService {
       where: { id: challengeId },
     });
     if (!challenge) {
-      throw new NotFoundException("Challenge not found");
+      throw new NotFoundException('Challenge not found');
     }
 
     const existing = await this.prisma.challengeParticipation.findUnique({
@@ -41,7 +45,7 @@ export class ChallengesService {
     });
 
     if (existing) {
-      throw new BadRequestException("Already joined this challenge");
+      throw new BadRequestException('Already joined this challenge');
     }
 
     return this.prisma.challengeParticipation.create({
@@ -64,14 +68,17 @@ export class ChallengesService {
     });
 
     if (!part) {
-      throw new NotFoundException("User has not joined this challenge");
+      throw new NotFoundException('User has not joined this challenge');
     }
 
     if (part.status === ChallengeStatus.COMPLETED) {
-      throw new BadRequestException("Challenge is already completed");
+      throw new BadRequestException('Challenge is already completed');
     }
 
-    const completed = Math.min(part.challenge.daysTotal, part.daysCompleted + daysToAdd);
+    const completed = Math.min(
+      part.challenge.daysTotal,
+      part.daysCompleted + daysToAdd,
+    );
     const pct = Math.round((completed / part.challenge.daysTotal) * 100);
     const isFinished = completed === part.challenge.daysTotal;
 
@@ -81,14 +88,18 @@ export class ChallengesService {
         data: {
           daysCompleted: completed,
           progress: pct,
-          status: isFinished ? ChallengeStatus.COMPLETED : ChallengeStatus.JOINED,
+          status: isFinished
+            ? ChallengeStatus.COMPLETED
+            : ChallengeStatus.JOINED,
           completedAt: isFinished ? new Date() : null,
         },
       });
 
       if (isFinished) {
         // Award points on completion
-        const leaderboard = await tx.leaderboard.findUnique({ where: { userId } });
+        const leaderboard = await tx.leaderboard.findUnique({
+          where: { userId },
+        });
         if (leaderboard) {
           await tx.leaderboard.update({
             where: { userId },
@@ -102,7 +113,7 @@ export class ChallengesService {
         await tx.notification.create({
           data: {
             userId,
-            type: "achievement",
+            type: 'achievement',
             message: `🏆 Completed challenge: "${part.challenge.title}"! +${part.challenge.points} Green Points!`,
           },
         });
@@ -112,7 +123,7 @@ export class ChallengesService {
           data: {
             userId,
             badgeName: part.challenge.title,
-            badgeIcon: "🏆",
+            badgeIcon: '🏆',
             badgeDesc: `Completed: ${part.challenge.description}`,
           },
         });

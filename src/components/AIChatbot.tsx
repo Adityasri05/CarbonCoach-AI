@@ -5,6 +5,29 @@ import { useApp } from "@/context/AppContext";
 import { MessageSquare, X, Send, Bot, User, Sparkles } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
+const renderMessageContent = (text: string, sender: "user" | "bot") => {
+  const lines = text.split("\n");
+  return lines.map((line, lineIdx) => {
+    const parts = line.split(/(\*\*[^*]+\*\*)/g);
+    const content = parts.map((part, partIdx) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        return (
+          <strong key={partIdx} className={`font-bold ${sender === "user" ? "text-white" : "text-emerald-400"}`}>
+            {part.slice(2, -2)}
+          </strong>
+        );
+      }
+      return part;
+    });
+
+    return (
+      <div key={lineIdx} className={line.trim() === "" ? "h-2" : "min-h-[1.25rem]"}>
+        {content}
+      </div>
+    );
+  });
+};
+
 export default function AIChatbot() {
   const { chatHistory, sendChatMessage } = useApp();
   const [isOpen, setIsOpen] = useState(false);
@@ -117,7 +140,7 @@ export default function AIChatbot() {
                         : "bg-slate-800 text-slate-200 border border-slate-700/30 rounded-tl-none"
                     }`}
                   >
-                    {msg.text}
+                    {renderMessageContent(msg.text, msg.sender)}
                   </div>
                 </div>
               ))}

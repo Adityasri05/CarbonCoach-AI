@@ -1,8 +1,8 @@
-import { Test, TestingModule } from "@nestjs/testing";
-import { TwinService } from "./twin.service";
-import { PrismaService } from "../../prisma/prisma.service";
+import { Test, TestingModule } from '@nestjs/testing';
+import { TwinService } from './twin.service';
+import { PrismaService } from '../../prisma/prisma.service';
 
-describe("TwinService", () => {
+describe('TwinService', () => {
   let service: TwinService;
   let prisma: PrismaService;
 
@@ -32,13 +32,13 @@ describe("TwinService", () => {
     jest.clearAllMocks();
   });
 
-  describe("simulate", () => {
-    it("should calculate correct savings and store simulation data", async () => {
-      const userId = "u1";
-      const scenarioName = "Green Future";
+  describe('simulate', () => {
+    it('should calculate correct savings and store simulation data', async () => {
+      const userId = 'u1';
+      const scenarioName = 'Green Future';
       const transportSlider = 5;
       const energySlider = 100;
-      const foodSlider = "Vegan";
+      const foodSlider = 'Vegan';
       const flightsSlider = 2;
 
       const mockUser = {
@@ -49,7 +49,7 @@ describe("TwinService", () => {
       };
 
       const mockSimulation = {
-        id: "sim1",
+        id: 'sim1',
         userId,
         scenarioName,
         transportSlider,
@@ -60,8 +60,10 @@ describe("TwinService", () => {
         simulatedScore: 4.8,
       };
 
-      jest.spyOn(prisma.user, "findUnique").mockResolvedValue(mockUser as any);
-      jest.spyOn(prisma.carbonTwinSimulation, "create").mockResolvedValue(mockSimulation as any);
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
+      jest
+        .spyOn(prisma.carbonTwinSimulation, 'create')
+        .mockResolvedValue(mockSimulation as any);
 
       const result = await service.simulate(
         userId,
@@ -69,7 +71,7 @@ describe("TwinService", () => {
         transportSlider,
         energySlider,
         foodSlider,
-        flightsSlider
+        flightsSlider,
       );
 
       // Math checks:
@@ -99,12 +101,12 @@ describe("TwinService", () => {
       expect(result.simulation).toEqual(mockSimulation);
     });
 
-    it("should handle positive saving percentage", async () => {
-      const userId = "u1";
-      const scenarioName = "Ultra Clean";
+    it('should handle positive saving percentage', async () => {
+      const userId = 'u1';
+      const scenarioName = 'Ultra Clean';
       const transportSlider = 7; // simulatedTransport = 0
       const energySlider = 20; // simulatedEnergy = 0.96 + 0.365 = 1.325
-      const foodSlider = "Vegan"; // simulatedFood = 0.6
+      const foodSlider = 'Vegan'; // simulatedFood = 0.6
       const flightsSlider = 0; // simulatedFlights = 0
       // wasteShoppingBaseline = 1.1
       // Sum = 0 + 1.325 + 0.6 + 0 + 1.1 = 3.025 -> 3.0 simulated score
@@ -117,8 +119,10 @@ describe("TwinService", () => {
         habits: null,
       };
 
-      jest.spyOn(prisma.user, "findUnique").mockResolvedValue(mockUser as any);
-      jest.spyOn(prisma.carbonTwinSimulation, "create").mockImplementation((args: any) => Promise.resolve(args.data));
+      jest.spyOn(prisma.user, 'findUnique').mockResolvedValue(mockUser as any);
+      jest
+        .spyOn(prisma.carbonTwinSimulation, 'create')
+        .mockImplementation((args: any) => Promise.resolve(args.data));
 
       const result = await service.simulate(
         userId,
@@ -126,7 +130,7 @@ describe("TwinService", () => {
         transportSlider,
         energySlider,
         foodSlider,
-        flightsSlider
+        flightsSlider,
       );
 
       expect(result.savingPercentage).toBe(56);
@@ -134,17 +138,19 @@ describe("TwinService", () => {
     });
   });
 
-  describe("getHistory", () => {
-    it("should fetch user simulation history", async () => {
-      const userId = "u1";
-      const mockHistory = [{ id: "sim1" }, { id: "sim2" }];
-      jest.spyOn(prisma.carbonTwinSimulation, "findMany").mockResolvedValue(mockHistory as any);
+  describe('getHistory', () => {
+    it('should fetch user simulation history', async () => {
+      const userId = 'u1';
+      const mockHistory = [{ id: 'sim1' }, { id: 'sim2' }];
+      jest
+        .spyOn(prisma.carbonTwinSimulation, 'findMany')
+        .mockResolvedValue(mockHistory as any);
 
       const result = await service.getHistory(userId);
 
       expect(prisma.carbonTwinSimulation.findMany).toHaveBeenCalledWith({
         where: { userId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
         take: 10,
       });
       expect(result).toEqual(mockHistory);

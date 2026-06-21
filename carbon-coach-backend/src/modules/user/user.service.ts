@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException } from "@nestjs/common";
-import { PrismaService } from "../../prisma/prisma.service";
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaService } from '../../prisma/prisma.service';
 
 @Injectable()
 export class UserService {
@@ -17,7 +17,7 @@ export class UserService {
     });
 
     if (!user) {
-      throw new NotFoundException("User not found");
+      throw new NotFoundException('User not found');
     }
 
     return {
@@ -34,7 +34,13 @@ export class UserService {
 
   async updateProfile(
     userId: string,
-    profileData: { name?: string; age?: number; country?: string; occupation?: string; avatarUrl?: string },
+    profileData: {
+      name?: string;
+      age?: number;
+      country?: string;
+      occupation?: string;
+      avatarUrl?: string;
+    },
     habitsData?: {
       travelDistance?: number;
       vehicleType?: string;
@@ -45,7 +51,7 @@ export class UserService {
       foodHabit?: string;
       shoppingFrequency?: string;
       recyclingHabits?: string;
-    }
+    },
   ) {
     return this.prisma.$transaction(async (tx) => {
       // Update User profile
