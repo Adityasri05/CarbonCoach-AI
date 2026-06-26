@@ -55,6 +55,8 @@ Climate change is the defining challenge of our generation. Yet despite growing 
 
 ---
 
+
+
 ## 💡 Our Solution
 
 **CarbonCoach AI** is an intelligent, gamified sustainability platform that transforms carbon tracking from a chore into an engaging daily habit.
@@ -117,6 +119,8 @@ Climate change is the defining challenge of our generation. Yet despite growing 
 - **Goal Setting** — Set and track personal carbon reduction targets
 
 ---
+
+
 
 ## 🏗️ Architecture & Tech Stack
 
